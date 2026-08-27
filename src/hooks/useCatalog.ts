@@ -1,40 +1,57 @@
-import { useMemo } from 'react'
+import { useMemo, useSyncExternalStore } from 'react'
 import { catalogService } from '../services'
+import { getCatalogVersion, subscribeToCatalog } from '../services/catalogSignal'
 import type { CatalogQuery } from '../types/catalog'
 import { useAsync } from './useAsync'
 
+/**
+ * Muda sempre que o painel administrativo grava algo — as telas então refazem
+ * as consultas e mostram o catálogo atualizado sem recarregar a página.
+ */
+function useCatalogVersion(): number {
+  return useSyncExternalStore(subscribeToCatalog, getCatalogVersion, getCatalogVersion)
+}
+
 export function useProducts(query: CatalogQuery) {
+  const version = useCatalogVersion()
   const key = useMemo(() => JSON.stringify(query), [query])
-  return useAsync(() => catalogService.listProducts(query), [key])
+  return useAsync(() => catalogService.listProducts(query), [key, version])
 }
 
 export function useProduct(slug: string | undefined) {
+  const version = useCatalogVersion()
   return useAsync(
     () => (slug ? catalogService.getProductBySlug(slug) : Promise.resolve(null)),
-    [slug],
+    [slug, version],
   )
 }
 
 export function useFeaturedProducts(limit = 8) {
-  return useAsync(() => catalogService.getFeaturedProducts(limit), [limit])
+  const version = useCatalogVersion()
+  return useAsync(() => catalogService.getFeaturedProducts(limit), [limit, version])
 }
 
 export function useCategories() {
-  return useAsync(() => catalogService.listCategories(), [])
+  const version = useCatalogVersion()
+  return useAsync(() => catalogService.listCategories(), [version])
 }
 
 export function useBrands(onlyPartners = false) {
-  return useAsync(() => catalogService.listBrands({ onlyPartners }), [onlyPartners])
+  const version = useCatalogVersion()
+  return useAsync(() => catalogService.listBrands({ onlyPartners }), [onlyPartners, version])
 }
 
 export function usePriceRange() {
-  return useAsync(() => catalogService.getPriceRange(), [])
+  const version = useCatalogVersion()
+  return useAsync(() => catalogService.getPriceRange(), [version])
 }
 
 export function useAvailableSizes() {
-  return useAsync(() => catalogService.listAvailableSizes(), [])
+  const version = useCatalogVersion()
+  return useAsync(() => catalogService.listAvailableSizes(), [version])
 }
 
 export function useCategoryCounts() {
-  return useAsync(() => catalogService.countByCategory(), [])
+  const version = useCatalogVersion()
+  return useAsync(() => catalogService.countByCategory(), [version])
 }

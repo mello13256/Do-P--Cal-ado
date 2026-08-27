@@ -4,7 +4,6 @@ import type {
   CatalogQuery,
   Paginated,
   PriceRange,
-  Product,
   ProductView,
 } from '../types/catalog'
 
@@ -14,9 +13,7 @@ import type {
  * Todos os métodos são assíncronos de propósito: hoje a implementação lê
  * arquivos locais, amanhã pode fazer `fetch('/api/produtos')` ou consultar um
  * banco — sem que nenhum componente da interface precise mudar.
- *
- * O futuro painel administrativo deve implementar o `CatalogWriteService`
- * (abaixo) contra a mesma modelagem de dados.
+
  */
 export interface CatalogService {
   listProducts(query?: CatalogQuery): Promise<Paginated<ProductView>>
@@ -33,20 +30,6 @@ export interface CatalogService {
   countByCategory(): Promise<Record<string, number>>
 }
 
-/**
- * Contrato de escrita — ainda não implementado.
- *
- * Quando o painel administrativo existir, basta criar uma implementação
- * (ex.: `ApiCatalogWriteService`) que fale com o backend. A interface pública
- * do site continua usando somente o `CatalogService` de leitura.
- */
-export interface CatalogWriteService {
-  createProduct(data: Omit<Product, 'id'>): Promise<Product>
-  updateProduct(id: string, data: Partial<Product>): Promise<Product>
-  deleteProduct(id: string): Promise<void>
-  updatePrice(id: string, price: number): Promise<Product>
-  updateAvailability(id: string, availability: Product['availability']): Promise<Product>
-  uploadProductImage(id: string, file: File): Promise<{ src: string }>
-  createBrand(data: Omit<Brand, 'id'>): Promise<Brand>
-  createCategory(data: Omit<Category, 'id'>): Promise<Category>
-}
+// O contrato de ESCRITA (usado pelo painel administrativo) fica em
+// `src/services/admin/adminService.ts`, com implementações para o Supabase e
+// para o modo local.

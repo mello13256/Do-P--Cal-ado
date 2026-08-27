@@ -1,17 +1,34 @@
 import type { CatalogService } from './catalogService'
+import type { CatalogAdminService } from './admin/adminService'
+import { localAdminService } from './local/localAdminService'
 import { staticCatalogService } from './staticCatalogService'
+import { isSupabaseConfigured } from './supabase/client'
+import { supabaseAdminService } from './supabase/supabaseAdminService'
+import { supabaseCatalogService } from './supabase/supabaseCatalogService'
 
 /**
- * PONTO ÚNICO DE TROCA DA FONTE DE DADOS.
+ * ORIGEM DOS DADOS DO CATÁLOGO
  *
- * Hoje o catálogo vem dos arquivos em `src/data`. Para ligar o site a uma API
- * ou banco de dados no futuro, crie uma implementação de `CatalogService`
- * (ex.: `apiCatalogService`, usando `fetch`) e troque a linha abaixo:
+ * • Com `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` no `.env`, o site lê e
+ *   grava no banco Postgres do Supabase (ver `supabase/README.md`).
+ * • Sem essas variáveis, cai no catálogo local de `src/data` — o site continua
+ *   funcionando e o painel roda em modo demonstração, guardando as alterações
+ *   no próprio navegador.
  *
- *   export const catalogService: CatalogService = apiCatalogService
- *
- * Nenhum componente visual precisa ser alterado.
+ * Para usar outro backend no futuro, escreva uma implementação de
+ * `CatalogService` (leitura) e outra de `CatalogAdminService` (escrita) e troque
+ * as duas linhas abaixo. Nenhum componente visual precisa mudar.
  */
-export const catalogService: CatalogService = staticCatalogService
+export const catalogService: CatalogService = isSupabaseConfigured
+  ? supabaseCatalogService
+  : staticCatalogService
 
-export type { CatalogService, CatalogWriteService } from './catalogService'
+export const catalogAdminService: CatalogAdminService = isSupabaseConfigured
+  ? supabaseAdminService
+  : localAdminService
+
+/** Qual origem está ativa — usada para avisar no painel. */
+export const dataSource: 'supabase' | 'local' = isSupabaseConfigured ? 'supabase' : 'local'
+
+export type { CatalogService } from './catalogService'
+export type { CatalogAdminService } from './admin/adminService'

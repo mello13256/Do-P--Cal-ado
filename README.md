@@ -18,10 +18,19 @@ administrativo.
 | Build/dev | **Vite 8** | Servidor de desenvolvimento instantâneo e build otimizado |
 | Estilos | **Tailwind CSS v4** | Design consistente, com as cores da loja definidas como tokens em `src/index.css` |
 | Rotas | **React Router 7** | Navegação entre páginas e filtros guardados na URL |
+| Banco de dados | **Supabase (Postgres)** | SQL gerenciado, com autenticação e armazenamento de fotos inclusos |
 | Estado do carrinho | **Context API + localStorage** | Simples, sem dependências extras, e o carrinho sobrevive ao recarregar |
 | Ícones | SVG inline (`src/components/ui/icons.tsx`) | Sem biblioteca externa, sem custo de rede |
 
-Nenhuma dependência além de React, React Router e Tailwind.
+Dependências: React, React Router, Tailwind e o cliente do Supabase.
+
+O site funciona nos dois modos:
+
+- **com Supabase configurado** → catálogo lido e gravado no banco Postgres, e o
+  painel administrativo em `/admin` exige login;
+- **sem Supabase** → catálogo lido de `src/data`, e o painel abre em modo
+  demonstração (as alterações ficam no navegador). Útil para desenvolver e como
+  rede de segurança se o banco estiver indisponível.
 
 ### Identidade visual
 
@@ -58,11 +67,15 @@ src/
 │   ├── products.ts           Produtos demonstrativos
 │   ├── categories.ts         As 9 categorias
 │   └── brands.ts             As 9 marcas + "Outras marcas"
-├── services/                 ⬅️ FONTE DE DADOS (ponto de troca para API/banco)
-│   ├── catalogService.ts     Contratos de leitura e de escrita (futuro admin)
-│   ├── staticCatalogService.ts  Implementação sobre os arquivos de `data/`
+├── services/                 ⬅️ FONTE DE DADOS
+│   ├── catalogService.ts     Contrato de leitura do catálogo
+│   ├── admin/adminService.ts Contrato de escrita (usado pelo painel)
+│   ├── staticCatalogService.ts  Leitura do catálogo local (`src/data`)
+│   ├── local/                Catálogo local + escrita em modo demonstração
+│   ├── supabase/             Cliente, leitura e escrita no Postgres
+│   ├── auth.ts               Login do painel (Supabase Auth)
 │   ├── checkoutService.ts    Pedido pelo WhatsApp (troque por um gateway depois)
-│   └── index.ts              Exporta o serviço ativo
+│   └── index.ts              Escolhe Supabase ou catálogo local
 ├── hooks/                    useCatalog, useProductFilters, useCart, useAsync…
 ├── context/                  CartProvider + contrato do carrinho
 ├── lib/                      formatação de preço, numerações, links de WhatsApp
@@ -76,7 +89,16 @@ src/
 │   ├── product/              ProductGallery, SizePicker
 │   ├── cart/                 CartDrawer, CartItemRow
 │   └── ui/                   Button, Drawer, Badge, Section, Skeleton, Breadcrumbs, icons
-└── pages/                    Home, Catálogo, Produto, Categorias, Marcas, Sobre, Contato, 404
+├── pages/                    Home, Catálogo, Produto, Categorias, Marcas, Sobre, Contato, 404
+│   └── admin/                Painel: login, produtos, formulário, marcas, categorias
+└── components/admin/         Campos de formulário e avisos do painel
+
+supabase/
+├── migrations/               Schema, políticas de acesso e armazenamento
+├── seed.sql                  Catálogo atual em SQL (gerado por `npm run seed:sql`)
+└── README.md                 Passo a passo para criar o banco
+
+scripts/gerar-seed.mjs        Gera o seed.sql a partir de src/data
 ```
 
 Regra que orienta a arquitetura: **nenhum componente visual importa produtos
@@ -94,7 +116,12 @@ npm run dev      # desenvolvimento em http://localhost:5173
 npm run build    # gera a versão de produção em dist/
 npm run preview  # testa localmente o build de produção
 npm run lint     # verificação estática (oxlint)
+npm run seed:sql # regera supabase/seed.sql a partir de src/data
 ```
+
+Para ligar o banco de dados, copie `.env.example` para `.env` e preencha as duas
+variáveis do Supabase — o passo a passo completo está em
+[`supabase/README.md`](supabase/README.md).
 
 Publicação: o conteúdo de `dist/` é estático e pode ir para Netlify, Vercel,
 Cloudflare Pages, Hostinger etc. Por ser uma SPA, o servidor precisa devolver
@@ -108,7 +135,12 @@ Antes de publicar, ajuste `siteConfig.seo.url` em `src/config/site.ts` e o
 
 ## 4. Onde alterar os produtos
 
-**`src/data/products.ts`** — é o único arquivo a mexer.
+Depende de como o site está rodando:
+
+- **Com o Supabase configurado** (recomendado): pelo **painel administrativo** em
+  `/admin`. Os arquivos de `src/data` deixam de alimentar o site e passam a ser
+  apenas a semente inicial do banco.
+- **Sem o Supabase**: editando **`src/data/products.ts`** — é o único arquivo a mexer.
 
 ```ts
 {
@@ -177,64 +209,63 @@ próprias marcas ou pelos representantes.
 
 ---
 
-## 6. Como conectar um banco de dados no futuro
+## 6. Banco de dados (Supabase / Postgres)
 
-Todo o site consome o contrato `CatalogService` (`src/services/catalogService.ts`).
-Para trocar a origem dos dados:
+O catálogo vive em seis tabelas — `brands`, `categories`, `products`,
+`product_images`, `product_sizes` e `admins`. O schema, as políticas de acesso e
+o armazenamento das fotos estão em `supabase/migrations/`, e o passo a passo de
+instalação em **[`supabase/README.md`](supabase/README.md)**.
 
-1. crie a implementação, por exemplo `src/services/apiCatalogService.ts`:
+Resumo:
 
-```ts
-export const apiCatalogService: CatalogService = {
-  async listProducts(query = {}) {
-    const params = new URLSearchParams(/* … monta a query … */)
-    const response = await fetch(`/api/produtos?${params}`)
-    if (!response.ok) throw new Error('Falha ao carregar produtos')
-    return response.json()   // { items, total, page, perPage, totalPages }
-  },
-  // … demais métodos do contrato
-}
-```
+1. crie o projeto no Supabase e rode os três arquivos de `supabase/migrations/`;
+2. rode `npm run seed:sql` e execute o `supabase/seed.sql` gerado, que leva o
+   catálogo de `src/data` para o banco;
+3. crie o usuário do painel em *Authentication → Users* e cadastre o UID dele na
+   tabela `admins`;
+4. preencha `.env` com `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
 
-2. troque **uma linha** em `src/services/index.ts`:
+Duas coisas que o banco resolve sozinho:
 
-```ts
-export const catalogService: CatalogService = apiCatalogService
-```
+- **estoque por numeração** — `product_sizes` guarda quantos pares há de cada
+  numeração, e um gatilho tira do site as numerações que zeraram;
+- **busca sem acento** — a coluna gerada `search_text` faz “tenis” encontrar
+  “Tênis” dentro do próprio Postgres.
 
-Nenhum componente visual muda. O backend pode ser o que for (Node + Postgres,
-Supabase, Firebase, WordPress headless, um ERP com API): basta responder no
-formato de `src/types/catalog.ts`.
+Filtros, busca, ordenação e paginação são executados no banco (`supabaseCatalogService`),
+então a página carrega apenas os 12 produtos que vai mostrar — o catálogo pode
+crescer bastante sem ficar lento.
 
-Pagamento online segue o mesmo caminho: hoje `checkoutService` monta o pedido no
-WhatsApp; para usar um gateway, crie outra implementação de `CheckoutService` que
-devolva a URL de pagamento e troque a exportação no fim de
-`src/services/checkoutService.ts`.
+Sem as variáveis do `.env`, tudo continua funcionando com o catálogo de
+`src/data`. A escolha acontece em `src/services/index.ts`; para usar outro
+backend no futuro, basta escrever novas implementações de `CatalogService`
+(leitura) e `CatalogAdminService` (escrita) e trocar duas linhas ali.
+
+Pagamento online segue o mesmo desenho: hoje o `checkoutService` monta o pedido
+no WhatsApp; para usar um gateway, crie outra implementação de `CheckoutService`
+que devolva a URL de pagamento.
 
 ---
 
-## 7. Como criar o painel administrativo no futuro
+## 7. Painel administrativo
 
-O contrato de escrita já está desenhado em `src/services/catalogService.ts`:
+Fica em **`/admin`** (e `/admin/entrar` para o login). Permite:
 
-```ts
-interface CatalogWriteService {
-  createProduct, updateProduct, deleteProduct,
-  updatePrice, updateAvailability, uploadProductImage,
-  createBrand, createCategory
-}
-```
+- cadastrar, editar e excluir produtos;
+- alterar preço e disponibilidade direto na listagem;
+- controlar o **estoque por numeração**;
+- enviar fotos (vão para o armazenamento do Supabase) ou informar o caminho;
+- marcar produto como destaque ou escondê-lo do site sem excluir;
+- cadastrar e editar marcas e categorias.
 
-Caminho sugerido:
+**Acesso.** Com o Supabase configurado, é preciso entrar com uma conta criada em
+*Authentication → Users* **e** cadastrada na tabela `admins`. As políticas de RLS
+recusam gravações de qualquer outro usuário — mesmo que alguém use a chave
+pública do site. Sem Supabase, o painel abre em modo demonstração, avisando na
+tela que as alterações ficam só naquele navegador.
 
-1. **Backend**: API REST (ou Supabase) com tabelas `products`, `categories`,
-   `brands` espelhando `src/types/catalog.ts`, mais autenticação para a loja.
-2. **Site público**: passa a usar o `apiCatalogService` (item 6). Nada mais muda.
-3. **Painel**: aplicação separada (ou uma rota `/admin` protegida neste mesmo
-   projeto) que implementa o `CatalogWriteService` — cadastro e edição de
-   produtos, preço, estoque, upload de imagens, marcas e categorias.
-4. Como o site lê tudo por métodos assíncronos, o estoque atualizado pelo painel
-   aparece no site sem qualquer reescrita de interface.
+O painel não é indexado pelos buscadores (`noindex` e `Disallow` no `robots.txt`)
+e o código dele só é baixado por quem acessa `/admin`.
 
 ---
 
@@ -258,6 +289,8 @@ Caminho sugerido:
   WhatsApp sempre ao alcance.
 - **SEO**: título e descrição por página, Open Graph, dados estruturados
   (`ShoeStore`), `robots.txt` e `sitemap.xml`.
+- **Painel administrativo** em `/admin`, com login, cadastro de produtos, marcas
+  e categorias, controle de estoque por numeração e envio de fotos.
 
 ## Contato da loja
 

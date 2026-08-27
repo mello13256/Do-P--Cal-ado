@@ -1,6 +1,3 @@
-import { brands } from '../data/brands'
-import { categories } from '../data/categories'
-import { products } from '../data/products'
 import { normalizeText } from '../lib/text'
 import type {
   Brand,
@@ -11,15 +8,17 @@ import type {
   Product,
   ProductView,
 } from '../types/catalog'
+import { getSnapshot } from './local/localStore'
 import type { CatalogService } from './catalogService'
 
 const DEFAULT_PER_PAGE = 12
 
-const brandById = new Map(brands.map((brand) => [brand.id, brand]))
-const categoryById = new Map(categories.map((category) => [category.id, category]))
-
 /** Junta produto + marca + categoria numa estrutura pronta para a interface. */
-function toProductView(product: Product): ProductView | null {
+function toProductView(
+  product: Product,
+  brandById: Map<string, Brand>,
+  categoryById: Map<string, Category>,
+): ProductView | null {
   const brand = brandById.get(product.brandId)
   const category = categoryById.get(product.categoryId)
   if (!brand || !category) {
@@ -34,9 +33,15 @@ function toProductView(product: Product): ProductView | null {
   return { ...product, brand, category }
 }
 
-const allProductViews: ProductView[] = products
-  .map(toProductView)
-  .filter((item): item is ProductView => item !== null)
+/** Lista atual de produtos prontos para a interface, a partir do catálogo local. */
+function productViews(): ProductView[] {
+  const { products, brands, categories } = getSnapshot()
+  const brandById = new Map<string, Brand>(brands.map((brand) => [brand.id, brand]))
+  const categoryById = new Map(categories.map((category) => [category.id, category]))
+  return products
+    .map((product) => toProductView(product, brandById, categoryById))
+    .filter((item): item is ProductView => item !== null)
+}
 
 function matchesGender(product: ProductView, genders: NonNullable<CatalogQuery['genders']>) {
   if (genders.length === 0) return true
@@ -95,7 +100,7 @@ function applyFilters(query: CatalogQuery): ProductView[] {
     maxPrice,
   } = query
 
-  return allProductViews.filter((product) => {
+  return productViews().filter((product) => {
     if (categorySlugs.length > 0 && !categorySlugs.includes(product.category.slug)) return false
     if (brandSlugs.length > 0 && !brandSlugs.includes(product.brand.slug)) return false
     if (!matchesGender(product, genders)) return false
@@ -131,14 +136,15 @@ export const staticCatalogService: CatalogService = {
   },
 
   async getProductBySlug(slug) {
-    return allProductViews.find((product) => product.slug === slug) ?? null
+    return productViews().find((product) => product.slug === slug) ?? null
   },
 
   async getRelatedProducts(product, limit = 4) {
-    const sameCategory = allProductViews.filter(
+    const all = productViews()
+    const sameCategory = all.filter(
       (item) => item.id !== product.id && item.categoryId === product.categoryId,
     )
-    const sameBrand = allProductViews.filter(
+    const sameBrand = all.filter(
       (item) =>
         item.id !== product.id &&
         item.brandId === product.brandId &&
@@ -148,29 +154,32 @@ export const staticCatalogService: CatalogService = {
   },
 
   async getFeaturedProducts(limit = 8) {
-    const featured = allProductViews.filter((product) => product.featured)
-    const rest = allProductViews.filter((product) => !product.featured)
+    const all = productViews()
+    const featured = all.filter((product) => product.featured)
+    const rest = all.filter((product) => !product.featured)
     return [...featured, ...rest]
       .filter((product) => product.availability === 'em-estoque')
       .slice(0, limit)
   },
 
   async listCategories(): Promise<Category[]> {
-    return [...categories].sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
+    return [...getSnapshot().categories].sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
   },
 
   async getCategoryBySlug(slug) {
-    return categories.find((category) => category.slug === slug) ?? null
+    return getSnapshot().categories.find((category) => category.slug === slug) ?? null
   },
 
   async listBrands(options = {}): Promise<Brand[]> {
+    const { brands } = getSnapshot()
     const list = options.onlyPartners ? brands.filter((brand) => brand.partner) : brands
     return list.map(({ partner: _partner, ...brand }) => brand)
   },
 
   async getPriceRange(): Promise<PriceRange> {
-    if (allProductViews.length === 0) return { min: 0, max: 0 }
-    const prices = allProductViews.map((product) => product.price)
+    const all = productViews()
+    if (all.length === 0) return { min: 0, max: 0 }
+    const prices = all.map((product) => product.price)
     return {
       min: Math.floor(Math.min(...prices)),
       max: Math.ceil(Math.max(...prices)),
@@ -179,12 +188,12 @@ export const staticCatalogService: CatalogService = {
 
   async listAvailableSizes() {
     const sizes = new Set<number>()
-    allProductViews.forEach((product) => product.sizes.forEach((size) => sizes.add(size)))
+    productViews().forEach((product) => product.sizes.forEach((size) => sizes.add(size)))
     return [...sizes].sort((a, b) => a - b)
   },
 
   async countByCategory() {
-    return allProductViews.reduce<Record<string, number>>((acc, product) => {
+    return productViews().reduce<Record<string, number>>((acc, product) => {
       acc[product.categoryId] = (acc[product.categoryId] ?? 0) + 1
       return acc
     }, {})
