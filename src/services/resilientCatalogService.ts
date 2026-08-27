@@ -1,6 +1,29 @@
 import type { CatalogService } from './catalogService'
 
 /**
+ * Fica `true` quando alguma leitura precisou recorrer ao catálogo local — ou
+ * seja, o banco não respondeu. A interface usa isso para avisar o cliente em
+ * vez de mostrar uma loja vazia sem explicação.
+ */
+let emReserva = false
+const ouvintes = new Set<() => void>()
+
+export function estaEmReserva(): boolean {
+  return emReserva
+}
+
+export function assinarReserva(ouvinte: () => void): () => void {
+  ouvintes.add(ouvinte)
+  return () => ouvintes.delete(ouvinte)
+}
+
+function marcarReserva() {
+  if (emReserva) return
+  emReserva = true
+  ouvintes.forEach((ouvinte) => ouvinte())
+}
+
+/**
  * Rede de segurança do catálogo.
  *
  * Toda leitura tenta primeiro o banco. Se der erro — internet fora, banco em
@@ -21,6 +44,7 @@ export function comReserva(principal: CatalogService, reserva: CatalogService): 
         `[catálogo] falha ao consultar o banco em "${operacao}" — usando o catálogo local.`,
         erro,
       )
+      marcarReserva()
       return doLocal()
     }
   }

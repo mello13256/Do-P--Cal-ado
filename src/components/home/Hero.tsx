@@ -26,7 +26,7 @@ export function Hero() {
             </p>
 
             <h1 className="mt-5 font-serif text-4xl font-semibold leading-[1.08] text-ink-900 sm:text-5xl lg:text-6xl">
-              Do <span className="text-brand-500">Pé</span> Calçado
+              Do <span className="text-brand-500">Pé</span> Calçados
             </h1>
 
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-600">
@@ -66,7 +66,7 @@ export function Hero() {
               <div className="relative overflow-hidden rounded-2xl bg-brand-500 px-8 py-14 text-center text-white">
                 <div className="footprint-trail absolute inset-0 opacity-20" aria-hidden="true" />
                 <p className="relative font-serif text-3xl font-semibold sm:text-4xl">
-                  Do <span className="text-ink-900">Pé</span> Calçado
+                  Do <span className="text-ink-900">Pé</span> Calçados
                 </p>
                 <p className="relative mt-3 text-sm font-medium uppercase tracking-[0.24em] text-white/80">
                   Calçados e artigos esportivos

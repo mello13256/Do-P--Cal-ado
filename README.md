@@ -1,6 +1,6 @@
-# Do Pé Calçado — site institucional e catálogo
+# Do Pé Calçados — site institucional e catálogo
 
-Site da **Do Pé Calçado**, loja de calçados e artigos esportivos de Contenda (PR),
+Site da **Do Pé Calçados**, loja de calçados e artigos esportivos de Contenda (PR),
 em atividade desde 1989.
 
 Inclui página inicial, catálogo com filtros funcionais, busca, página de produto,
@@ -44,7 +44,7 @@ visita e banner institucional):
   a marca d'água dos placeholders e a trilha de fundo do destaque;
 - o carimbo **“Desde 1989”** foi recriado em SVG (`SinceBadge`).
 
-O nome da loja aparece sempre como **Do Pé Calçado**.
+O nome da loja aparece sempre como **Do Pé Calçados**.
 
 ---
 
@@ -304,5 +304,5 @@ e o código dele só é baixado por quem acessa `/admin`.
 
 ## Contato da loja
 
-**Do Pé Calçado** — Av. João Franco, 123 - Centro, Contenda - Paraná
+**Do Pé Calçados** — Av. João Franco, 123 - Centro, Contenda - Paraná
 Telefone (41) 3625-1295 · WhatsApp (41) 99790-1570 · dopecalcado@gmail.com

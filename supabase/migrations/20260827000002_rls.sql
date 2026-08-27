@@ -1,5 +1,5 @@
 -- =============================================================================
--- Do Pé Calçado — políticas de acesso (Row Level Security)
+-- Do Pé Calçados — políticas de acesso (Row Level Security)
 -- =============================================================================
 -- Regra geral:
 --   • qualquer visitante pode LER o catálogo (é uma vitrine pública);

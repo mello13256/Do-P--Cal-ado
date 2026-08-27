@@ -8,7 +8,7 @@ export default function AboutPage() {
     <>
       <Seo
         title="Sobre nós"
-        description="A Do Pé Calçado iniciou suas atividades em fevereiro de 1989 em Contenda, Paraná. Conheça a história da loja."
+        description="A Do Pé Calçados iniciou suas atividades em fevereiro de 1989 em Contenda, Paraná. Conheça a história da loja."
         path="/sobre"
       />
 

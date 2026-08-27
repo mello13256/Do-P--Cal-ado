@@ -8,7 +8,7 @@
 
 export const siteConfig = {
   /** Nome oficial da loja. Não usar variações. */
-  name: 'Do Pé Calçado',
+  name: 'Do Pé Calçados',
   shortName: 'Do Pé',
   foundedYear: 1989,
   tagline: 'Tradição desde 1989',
@@ -16,9 +16,9 @@ export const siteConfig = {
   segment: 'Calçados e Artigos Esportivos',
 
   seo: {
-    title: 'Do Pé Calçado | Calçados e Artigos Esportivos',
+    title: 'Do Pé Calçados | Calçados e Artigos Esportivos',
     description:
-      'Do Pé Calçado — tradição desde 1989 em calçados, artigos esportivos, confecções e muito mais. Encontre produtos para toda a família em Contenda, Paraná.',
+      'Do Pé Calçados — tradição desde 1989 em calçados, artigos esportivos, confecções e muito mais. Encontre produtos para toda a família em Contenda, Paraná.',
     url: 'https://dopecalcado.com.br',
     ogImage: '/og-image.png',
   },
@@ -77,7 +77,7 @@ export const siteConfig = {
   /** História da loja, conforme o material institucional impresso. */
   history: {
     paragraphs: [
-      'A Do Pé Calçado iniciou suas atividades em fevereiro de 1989, comercializando inicialmente uma pequena linha de calçados.',
+      'A Do Pé Calçados iniciou suas atividades em fevereiro de 1989, comercializando inicialmente uma pequena linha de calçados.',
       'Os anos foram passando e o volume de vendas foi aumentando. Em 1998 a empresa passou por uma renovação, consolidando-se no mercado contendense através da sua seriedade, competência e transparência nos negócios.',
       'Sendo assim, só nos resta agradecer a Deus, aos nossos clientes, amigos, colaboradores e parceiros por todas essas glórias. Muito obrigado a todos.',
     ],

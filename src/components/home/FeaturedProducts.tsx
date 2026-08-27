@@ -7,6 +7,10 @@ import { Section, SectionHeader } from '../ui/Section'
 export function FeaturedProducts() {
   const { data: products, loading } = useFeaturedProducts(8)
 
+  // Sem produtos (catálogo ainda vazio ou banco fora do ar) a seção não
+  // aparece, em vez de mostrar uma vitrine vazia na página inicial.
+  if (!loading && (products?.length ?? 0) === 0) return null
+
   return (
     <Section muted>
       <SectionHeader

@@ -13,7 +13,7 @@ export default function CategoriesPage() {
     <>
       <Seo
         title="Categorias"
-        description="Tênis, chuteiras, sandálias, tamancos, calçados, artigos esportivos, confecções, brinquedos e muito mais na Do Pé Calçado."
+        description="Tênis, chuteiras, sandálias, tamancos, calçados, artigos esportivos, confecções, brinquedos e muito mais na Do Pé Calçados."
         path="/categorias"
       />
 

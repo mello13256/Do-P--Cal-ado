@@ -131,9 +131,6 @@ export default function ProductPage() {
             </p>
 
             <p className="mt-5 text-3xl font-bold text-ink-900">{formatPrice(product.price)}</p>
-            <p className="mt-1 text-xs text-ink-500">
-              Preço demonstrativo. Confirme valores e condições de pagamento com a loja.
-            </p>
 
             {needsSize ? (
               <div className="mt-7">

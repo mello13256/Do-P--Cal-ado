@@ -18,6 +18,7 @@ import {
   usePriceRange,
   useProducts,
 } from '../hooks/useCatalog'
+import { useCatalogoEmReserva } from '../hooks/useCatalogoEmReserva'
 import { useProductFilters } from '../hooks/useProductFilters'
 
 const PER_PAGE = 12
@@ -30,6 +31,7 @@ export default function CatalogPage() {
   const { data: sizes } = useAvailableSizes()
   const { data: priceBounds } = usePriceRange()
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const emReserva = useCatalogoEmReserva()
 
   const categoryList = categories ?? []
   const brandList = brands ?? []
@@ -59,7 +61,7 @@ export default function CatalogPage() {
         title={selectedCategory ? `${selectedCategory.name}` : 'Produtos'}
         description={
           selectedCategory?.description ??
-          'Catálogo da Do Pé Calçado: calçados, artigos esportivos, confecções, brinquedos e mais, com filtros por marca, público, numeração e preço.'
+          'Catálogo da Do Pé Calçados: calçados, artigos esportivos, confecções, brinquedos e mais, com filtros por marca, público, numeração e preço.'
         }
         path="/produtos"
       />
@@ -81,10 +83,6 @@ export default function CatalogPage() {
           <p className="mt-2 max-w-2xl text-[0.95rem] leading-relaxed text-ink-600">
             {selectedCategory?.description ??
               'Use os filtros para encontrar por categoria, público, numeração, marca, disponibilidade e preço.'}
-          </p>
-          <p className="mt-3 text-xs text-ink-400">
-            Catálogo demonstrativo: os produtos e preços abaixo são exemplos até o cadastro do
-            estoque real da loja.
           </p>
         </header>
 
@@ -151,7 +149,18 @@ export default function CatalogPage() {
               loading={loading}
               skeletonCount={PER_PAGE}
               emptyState={
-                <EmptyState onClear={hasActiveFilters ? actions.clearAll : undefined} />
+                <EmptyState
+                  offline={emReserva && total === 0}
+                  // Sem nenhum filtro e sem resultado: o catálogo ainda não tem
+                  // produtos cadastrados — não adianta pedir para ajustar filtros.
+                  title={hasActiveFilters ? undefined : 'Catálogo em atualização'}
+                  description={
+                    hasActiveFilters
+                      ? undefined
+                      : 'Estamos cadastrando os produtos da loja. Enquanto isso, chame a gente no WhatsApp: respondemos com modelos, numerações e preços na hora.'
+                  }
+                  onClear={hasActiveFilters ? actions.clearAll : undefined}
+                />
               }
             />
 

@@ -21,7 +21,7 @@ const sizes = {
 } as const
 
 /**
- * Logotipo da Do Pé Calçado.
+ * Logotipo da Do Pé Calçados.
  *
  * Por padrão desenha a versão vetorial construída a partir da identidade
  * impressa da loja (painel vermelho + pegada + nome em serifa). Para usar o
@@ -70,7 +70,7 @@ export function Logo({
               inverted ? 'text-white' : 'text-ink-900',
             )}
           >
-            Do <span className="text-brand-500">Pé</span> Calçado
+            Do <span className="text-brand-500">Pé</span> Calçados
           </span>
           {withTagline ? (
             <span

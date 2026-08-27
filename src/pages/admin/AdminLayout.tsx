@@ -54,7 +54,7 @@ export default function AdminLayout() {
 
       <header className="border-b border-ink-200 bg-white">
         <div className="container-page flex h-16 items-center gap-4">
-          <Link to="/admin/produtos" className="shrink-0" aria-label="Painel Do Pé Calçado">
+          <Link to="/admin/produtos" className="shrink-0" aria-label="Painel Do Pé Calçados">
             <Logo size="sm" />
           </Link>
           <span className="hidden rounded-full bg-ink-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-ink-600 sm:inline">

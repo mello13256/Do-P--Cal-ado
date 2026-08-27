@@ -28,7 +28,7 @@ export function TrustStrip() {
   return (
     <section className="border-y border-ink-100 bg-white">
       <div className="container-page py-10">
-        <h2 className="sr-only">Por que comprar na Do Pé Calçado</h2>
+        <h2 className="sr-only">Por que comprar na Do Pé Calçados</h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((item) => (
             <div key={item.title} className="flex gap-3">

@@ -47,7 +47,7 @@ reais no painel, em cada produto.
 
 ```sql
 insert into public.admins (user_id, name)
-values ('COLE-O-UID-AQUI', 'Do Pé Calçado');
+values ('COLE-O-UID-AQUI', 'Do Pé Calçados');
 ```
 
 Sem esse cadastro a pessoa até consegue entrar, mas não grava nada — as regras

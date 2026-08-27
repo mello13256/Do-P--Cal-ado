@@ -1,5 +1,5 @@
 -- =============================================================================
--- Do Pé Calçado — armazenamento das fotos
+-- Do Pé Calçados — armazenamento das fotos
 -- =============================================================================
 -- Bucket público `catalogo`: leitura livre (as fotos aparecem no site),
 -- upload e remoção apenas para administradores.

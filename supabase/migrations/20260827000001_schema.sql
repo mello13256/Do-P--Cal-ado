@@ -1,5 +1,5 @@
 -- =============================================================================
--- Do Pé Calçado — estrutura do catálogo
+-- Do Pé Calçados — estrutura do catálogo
 -- =============================================================================
 -- Tabelas: brands, categories, products, product_images, product_sizes, admins.
 -- Rode este arquivo primeiro (SQL Editor do Supabase ou `supabase db push`).
