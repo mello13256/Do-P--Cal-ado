@@ -12,6 +12,7 @@ import { sizeRange } from '../../lib/sizes'
 import { catalogAdminService } from '../../services'
 import type { ProductInput } from '../../services/admin/adminService'
 import type { Availability, Gender } from '../../types/catalog'
+import { assetUrl } from '../../lib/assets'
 
 const emptyProduct: ProductInput = {
   slug: '',
@@ -400,7 +401,7 @@ export default function AdminProductFormPage() {
                 <li key={index} className="rounded-xl border border-ink-200 p-3">
                   <div className="flex gap-3">
                     <img
-                      src={image.src}
+                      src={assetUrl(image.src)}
                       alt=""
                       className="h-16 w-14 shrink-0 rounded-lg border border-ink-100 object-cover"
                       onError={(event) => {

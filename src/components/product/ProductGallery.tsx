@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ProductImage } from '../../types/catalog'
 import { MediaPlaceholder } from '../brand/MediaPlaceholder'
 import { cn } from '../../lib/cn'
+import { assetUrl } from '../../lib/assets'
 
 interface ProductGalleryProps {
   images: ProductImage[]
@@ -21,7 +22,7 @@ export function ProductGallery({ images, productName, categoryName }: ProductGal
         <div className="aspect-4/5 sm:aspect-square lg:aspect-4/5">
           {active?.src ? (
             <img
-              src={active.src}
+              src={assetUrl(active.src)}
               alt={active.alt || productName}
               className="h-full w-full object-cover"
               decoding="async"
@@ -49,7 +50,7 @@ export function ProductGallery({ images, productName, categoryName }: ProductGal
                 )}
               >
                 {image.src ? (
-                  <img src={image.src} alt="" className="h-full w-full object-cover" loading="lazy" />
+                  <img src={assetUrl(image.src)} alt="" className="h-full w-full object-cover" loading="lazy" />
                 ) : (
                   <MediaPlaceholder />
                 )}

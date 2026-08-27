@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import type { Category } from '../../types/catalog'
 import { MediaPlaceholder } from '../brand/MediaPlaceholder'
 import { IconArrowRight } from '../ui/icons'
+import { assetUrl } from '../../lib/assets'
 
 interface CategoryCardProps {
   category: Category
@@ -15,7 +16,7 @@ export function CategoryCard({ category, count }: CategoryCardProps) {
       <div className="aspect-4/3 overflow-hidden bg-ink-50">
         {category.image ? (
           <img
-            src={category.image}
+            src={assetUrl(category.image)}
             alt={`Categoria ${category.name}`}
             loading="lazy"
             decoding="async"

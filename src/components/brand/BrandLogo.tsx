@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { cn } from '../../lib/cn'
 import type { Brand } from '../../types/catalog'
+import { assetUrl } from '../../lib/assets'
 
 interface BrandLogoProps {
   brand: Brand
@@ -24,7 +25,7 @@ export function BrandLogo({ brand, className }: BrandLogoProps) {
   if (showImage) {
     return (
       <img
-        src={brand.logo}
+        src={assetUrl(brand.logo)}
         alt={`Logotipo ${brand.name}`}
         loading="lazy"
         decoding="async"

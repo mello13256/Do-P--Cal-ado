@@ -1,6 +1,7 @@
 import { siteConfig } from '../../config/site'
 import { cn } from '../../lib/cn'
 import { FootprintMark } from './FootprintMark'
+import { assetUrl } from '../../lib/assets'
 
 interface LogoProps {
   /** 'full' = símbolo + nome; 'mark' = apenas o símbolo. */
@@ -39,7 +40,7 @@ export function Logo({
   if (siteConfig.logoSrc) {
     return (
       <img
-        src={siteConfig.logoSrc}
+        src={assetUrl(siteConfig.logoSrc)}
         alt={`${siteConfig.name} — ${siteConfig.tagline}`}
         className={cn('h-11 w-auto object-contain', className)}
         width={220}

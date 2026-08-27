@@ -8,6 +8,7 @@ import type { ProductView } from '../../types/catalog'
 import { MediaPlaceholder } from '../brand/MediaPlaceholder'
 import { Badge } from '../ui/Badge'
 import { IconCart } from '../ui/icons'
+import { assetUrl } from '../../lib/assets'
 
 interface ProductCardProps {
   product: ProductView
@@ -27,7 +28,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
       <div className="relative aspect-4/5 overflow-hidden bg-ink-50">
         {image?.src ? (
           <img
-            src={image.src}
+            src={assetUrl(image.src)}
             alt={image.alt}
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"

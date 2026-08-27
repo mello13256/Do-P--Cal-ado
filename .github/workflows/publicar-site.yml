@@ -1,0 +1,56 @@
+# Publica o site no GitHub Pages a cada envio para a branch principal.
+#
+# Para ligar (uma vez só): no GitHub, Settings → Pages → Build and deployment →
+# Source: "GitHub Actions".
+name: Publicar site
+
+on:
+  push:
+    branches: [claude/do-pe-calcado-website-38y040]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Uma publicação por vez; envios novos cancelam a fila, não o que está no ar.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Gerar o site
+        # O Pages serve em /<nome-do-repositorio>/, então o build precisa saber
+        # disso para montar os caminhos dos arquivos.
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/
+        run: npm run build:pages
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

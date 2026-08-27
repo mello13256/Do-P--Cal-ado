@@ -4,6 +4,7 @@ import { useCart } from '../../hooks/useCart'
 import { formatPrice } from '../../lib/format'
 import { MediaPlaceholder } from '../brand/MediaPlaceholder'
 import { IconMinus, IconPlus, IconTrash } from '../ui/icons'
+import { assetUrl } from '../../lib/assets'
 
 export function CartItemRow({ item, onNavigate }: { item: CartItem; onNavigate?: () => void }) {
   const { setQuantity, removeItem } = useCart()
@@ -19,7 +20,7 @@ export function CartItemRow({ item, onNavigate }: { item: CartItem; onNavigate?:
       >
         {item.image ? (
           <img
-            src={item.image}
+            src={assetUrl(item.image)}
             alt=""
             className="h-full w-full object-cover"
             loading="lazy"
