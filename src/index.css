@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+/*
+  Do Pé Calçado — tokens de identidade visual.
+  Cores extraídas dos materiais impressos da loja (cartão de visita, banner e
+  placa): vermelho da fachada, cinza da moldura, preto do logotipo e o creme
+  dos materiais institucionais.
+*/
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Lora", ui-serif, Georgia, "Times New Roman", serif;
+
+  --color-brand-50: #fdf4f2;
+  --color-brand-100: #fbe5e1;
+  --color-brand-200: #f6c9c0;
+  --color-brand-300: #eda293;
+  --color-brand-400: #e26f59;
+  --color-brand-500: #d93a28;
+  --color-brand-600: #c22e1e;
+  --color-brand-700: #9f2418;
+  --color-brand-800: #7d1e14;
+  --color-brand-900: #5d1710;
+
+  --color-ink-50: #f7f8f9;
+  --color-ink-100: #eef0f2;
+  --color-ink-200: #dfe2e6;
+  --color-ink-300: #c4c9d0;
+  --color-ink-400: #9aa1aa;
+  --color-ink-500: #737a84;
+  --color-ink-600: #545a63;
+  --color-ink-700: #3c4148;
+  --color-ink-800: #26292e;
+  --color-ink-900: #141619;
+
+  --color-cream: #faf7f2;
+
+  --shadow-card: 0 1px 2px rgb(20 22 25 / 0.04), 0 8px 24px -12px rgb(20 22 25 / 0.18);
+  --shadow-card-hover: 0 2px 4px rgb(20 22 25 / 0.06), 0 18px 40px -18px rgb(20 22 25 / 0.28);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: #ffffff;
+    color: var(--color-ink-800);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  h1, h2, h3, h4 {
+    color: var(--color-ink-900);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility container-page {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 80rem;
+  padding-inline: 1rem;
+  @media (width >= 40rem) { padding-inline: 1.5rem; }
+  @media (width >= 64rem) { padding-inline: 2rem; }
+}
+
+/* Trilha de pegadas — motivo tirado do banner institucional da loja. */
+@utility footprint-trail {
+  background-image: url("/pattern-pegadas.svg");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@utility animate-fade-up {
+  animation: fade-up 0.5s var(--ease-out-soft) both;
+}
+
+/* Slider de faixa de preço (dois inputs sobrepostos). */
+.range-thumb {
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+.range-thumb::-webkit-slider-thumb {
+  pointer-events: auto;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1.125rem;
+  width: 1.125rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 2px solid var(--color-brand-500);
+  box-shadow: 0 1px 3px rgb(20 22 25 / 0.25);
+  cursor: pointer;
+}
+.range-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  height: 1.125rem;
+  width: 1.125rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 2px solid var(--color-brand-500);
+  box-shadow: 0 1px 3px rgb(20 22 25 / 0.25);
+  cursor: pointer;
+}

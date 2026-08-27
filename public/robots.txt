@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dopecalcado.com.br/sitemap.xml
