@@ -237,10 +237,19 @@ Filtros, busca, ordenação e paginação são executados no banco (`supabaseCat
 então a página carrega apenas os 12 produtos que vai mostrar — o catálogo pode
 crescer bastante sem ficar lento.
 
-Sem as variáveis do `.env`, tudo continua funcionando com o catálogo de
-`src/data`. A escolha acontece em `src/services/index.ts`; para usar outro
-backend no futuro, basta escrever novas implementações de `CatalogService`
-(leitura) e `CatalogAdminService` (escrita) e trocar duas linhas ali.
+O projeto Supabase da loja já vem configurado em
+`src/services/supabase/client.ts` (a chave `anon` é pública por natureza — quem
+protege os dados são as políticas de RLS). As variáveis `VITE_SUPABASE_*` do
+`.env` continuam valendo e têm preferência, úteis para apontar para outro
+projeto.
+
+Se o banco estiver fora do ar, a leitura cai automaticamente no catálogo de
+`src/data` (`resilientCatalogService`) — o cliente vê a loja funcionando em vez
+de uma página vazia, e o aviso fica no console do navegador.
+
+A escolha da origem acontece em `src/services/index.ts`; para usar outro backend
+no futuro, basta escrever novas implementações de `CatalogService` (leitura) e
+`CatalogAdminService` (escrita) e trocar duas linhas ali.
 
 Pagamento online segue o mesmo desenho: hoje o `checkoutService` monta o pedido
 no WhatsApp; para usar um gateway, crie outra implementação de `CheckoutService`
