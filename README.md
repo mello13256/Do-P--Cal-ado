@@ -94,6 +94,7 @@ src/
 └── components/admin/         Campos de formulário e avisos do painel
 
 supabase/
+├── instalacao-completa.sql   Tudo em um arquivo só, para colar no SQL Editor
 ├── migrations/               Schema, políticas de acesso e armazenamento
 ├── seed.sql                  Catálogo atual em SQL (gerado por `npm run seed:sql`)
 └── README.md                 Passo a passo para criar o banco
@@ -218,9 +219,9 @@ instalação em **[`supabase/README.md`](supabase/README.md)**.
 
 Resumo:
 
-1. crie o projeto no Supabase e rode os três arquivos de `supabase/migrations/`;
-2. rode `npm run seed:sql` e execute o `supabase/seed.sql` gerado, que leva o
-   catálogo de `src/data` para o banco;
+1. crie o projeto no Supabase;
+2. cole `supabase/instalacao-completa.sql` no SQL Editor e rode — cria tudo e já
+   carrega o catálogo;
 3. crie o usuário do painel em *Authentication → Users* e cadastre o UID dele na
    tabela `admins`;
 4. preencha `.env` com `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.

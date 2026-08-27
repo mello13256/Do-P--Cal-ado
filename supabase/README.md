@@ -16,30 +16,29 @@ navegador).
 3. Guarde a senha do banco em lugar seguro (ela não é usada pelo site, mas serve
    para acessos administrativos).
 
-## 2. Criar as tabelas
+## 2. Criar as tabelas e carregar o catálogo
 
-No painel do Supabase, abra **SQL Editor** e rode os arquivos desta pasta, nesta
-ordem (copiar e colar o conteúdo, um de cada vez):
+Abra **SQL Editor → New query**, cole o conteúdo de
+**`supabase/instalacao-completa.sql`** e clique em **Run**.
 
-1. `migrations/20260827000001_schema.sql` — tabelas, índices e gatilhos;
-2. `migrations/20260827000002_rls.sql` — regras de acesso;
-3. `migrations/20260827000003_storage.sql` — pasta pública das fotos.
+Esse arquivo faz tudo de uma vez: tabelas, índices, gatilhos, regras de acesso,
+a pasta pública das fotos e o catálogo atual (10 marcas, 9 categorias,
+34 produtos). Pode rodar de novo quando quiser — nada é duplicado.
 
-> Usando a CLI do Supabase, dá para rodar tudo de uma vez com
-> `supabase link --project-ref <ref>` seguido de `supabase db push`.
+Ao terminar, confira em **Table Editor** se as tabelas `brands`, `categories`,
+`products`, `product_images`, `product_sizes` e `admins` apareceram.
 
-## 3. Levar o catálogo para o banco
+> Se preferir aplicar por partes (ou usar a CLI com `supabase db push`), os
+> arquivos originais estão em `migrations/`, e o catálogo em `seed.sql`.
+>
+> O arquivo único é gerado a partir deles; para regerar depois de mexer em
+> `src/data`, rode `npm run seed:sql` e refaça a junção (ou cole só o `seed.sql`).
 
-O arquivo `seed.sql` é gerado a partir de `src/data`:
+**Sobre o estoque:** a carga inicial coloca **1 par** em cada numeração dos
+produtos em estoque, só para o site ter o que mostrar. Ajuste as quantidades
+reais no painel, em cada produto.
 
-```bash
-npm run seed:sql     # regera supabase/seed.sql
-```
-
-Cole o conteúdo de `seed.sql` no **SQL Editor** e execute. Pode rodar quantas
-vezes quiser: os registros são atualizados pelo slug, não duplicados.
-
-## 4. Criar o usuário do painel
+## 3. Criar o usuário do painel
 
 1. **Authentication → Users → Add user** → e-mail e senha da loja.
    Marque *Auto Confirm User* para não precisar confirmar por e-mail.
@@ -57,7 +56,7 @@ de RLS recusam. É essa tabela que controla quem administra o catálogo.
 > Em **Authentication → Providers → Email**, deixe *Enable Signups* **desligado**:
 > assim ninguém cria conta sozinho; as contas são criadas por você.
 
-## 5. Configurar o site
+## 4. Configurar o site
 
 Copie `.env.example` para `.env` e preencha com os dados de
 **Project Settings → API**:
