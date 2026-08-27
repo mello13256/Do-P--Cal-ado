@@ -53,6 +53,12 @@ export const siteConfig = {
   ],
 
   /**
+   * Domínio usado no login do painel: quem digitar apenas "helio" entra como
+   * helio@dopecalcado.com.br. Quem digitar um e-mail completo entra com ele.
+   */
+  adminEmailDomain: 'dopecalcado.com.br',
+
+  /**
    * Logotipo. Deixe `null` para usar o logotipo vetorial embutido
    * (componente `Logo`). Para usar o arquivo oficial em alta resolução,
    * coloque-o em `public/` e aponte aqui, ex.: '/logo-do-pe-calcado.png'.

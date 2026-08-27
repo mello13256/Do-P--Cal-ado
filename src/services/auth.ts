@@ -1,4 +1,15 @@
+import { siteConfig } from '../config/site'
 import { isSupabaseConfigured, supabase } from './supabase/client'
+
+/**
+ * O Supabase autentica por e-mail. Para a loja é mais simples entrar como
+ * "helio", então completamos o endereço quando não vier um e-mail inteiro.
+ */
+export function normalizarUsuario(entrada: string): string {
+  const valor = entrada.trim().toLowerCase()
+  if (!valor || valor.includes('@')) return valor
+  return `${valor}@${siteConfig.adminEmailDomain}`
+}
 
 export interface AdminSession {
   userId: string
@@ -51,8 +62,9 @@ export const authService = {
     }
   },
 
-  async signIn(email: string, password: string): Promise<AdminSession> {
+  async signIn(usuario: string, password: string): Promise<AdminSession> {
     if (!supabase) return DEMO_SESSION
+    const email = normalizarUsuario(usuario)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw new Error(traduzErro(error.message))
     const user = data.user
@@ -81,7 +93,10 @@ export const authService = {
 }
 
 function traduzErro(message: string): string {
-  if (/invalid login credentials/i.test(message)) return 'E-mail ou senha incorretos.'
+  if (/invalid login credentials/i.test(message)) return 'Usuário ou senha incorretos.'
   if (/email not confirmed/i.test(message)) return 'Confirme o e-mail da conta antes de entrar.'
+  if (/failed to fetch|network|load failed/i.test(message)) {
+    return 'Não foi possível falar com o servidor. Verifique a conexão e tente de novo.'
+  }
   return message
 }

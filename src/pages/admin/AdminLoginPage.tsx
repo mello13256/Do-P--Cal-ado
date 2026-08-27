@@ -11,7 +11,7 @@ export default function AdminLoginPage() {
   const { session, loading, signIn, requiresLogin } = useAdminSession()
   const navigate = useNavigate()
   const location = useLocation() as { state?: { from?: string } }
-  const [email, setEmail] = useState('')
+  const [usuario, setUsuario] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
     setSubmitting(true)
     setError(null)
     try {
-      await signIn(email, password)
+      await signIn(usuario, password)
       navigate(location.state?.from ?? '/admin/produtos', { replace: true })
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Não foi possível entrar.')
@@ -42,18 +42,21 @@ export default function AdminLoginPage() {
         <Logo size="md" />
         <h1 className="mt-6 text-xl font-bold">Painel administrativo</h1>
         <p className="mt-1 text-sm text-ink-500">
-          Entre com a conta cadastrada para gerenciar o catálogo da loja.
+          Entre com a conta da loja para gerenciar o catálogo.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <Field label="E-mail">
+          <Field label="Usuário" hint="Também aceita o e-mail completo.">
             {(id) => (
               <TextInput
                 id={id}
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                type="text"
+                value={usuario}
+                onChange={(event) => setUsuario(event.target.value)}
                 autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                placeholder="helio"
                 required
               />
             )}
