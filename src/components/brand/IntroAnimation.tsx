@@ -22,17 +22,34 @@ const PARTES = [
   { cx: 80, cy: 34, rx: 4, ry: 5, rotacao: 18, atraso: 1.65, duracao: 0.34, dedo: true },
 ]
 
-const DURACAO_TOTAL = 2900
 const DURACAO_SAIDA = 420
 
-function devePular(): boolean {
-  if (typeof window === 'undefined') return true
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true
-  return window.location.pathname.includes('/admin')
+/**
+ * `completa` = a pegada se formando.
+ * `simples`  = a marca aparece pronta, sem movimento, para quem pediu menos
+ *              animação no sistema (o próprio navegador anula as animações).
+ * `nenhuma`  = painel administrativo.
+ *
+ * Dá para forçar pela URL, útil para conferir: `?intro=1` sempre mostra,
+ * `?intro=0` sempre pula.
+ */
+type Modo = 'completa' | 'simples' | 'nenhuma'
+
+function definirModo(): Modo {
+  if (typeof window === 'undefined') return 'nenhuma'
+
+  const forcado = new URLSearchParams(window.location.search).get('intro')
+  if (forcado === '0') return 'nenhuma'
+  if (forcado === '1') return 'completa'
+
+  if (window.location.pathname.includes('/admin')) return 'nenhuma'
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 'simples'
+  return 'completa'
 }
 
 export function IntroAnimation() {
-  const [montado, setMontado] = useState(() => !devePular())
+  const [modo] = useState<Modo>(definirModo)
+  const [montado, setMontado] = useState(() => modo !== 'nenhuma')
   const [saindo, setSaindo] = useState(false)
 
   useEffect(() => {
@@ -45,7 +62,8 @@ export function IntroAnimation() {
       fim = window.setTimeout(() => setMontado(false), atraso)
     }
 
-    const automatico = window.setTimeout(() => encerrar(DURACAO_SAIDA), DURACAO_TOTAL)
+    const duracaoTotal = modo === 'simples' ? 1500 : 2900
+    const automatico = window.setTimeout(() => encerrar(DURACAO_SAIDA), duracaoTotal)
     const pular = () => {
       window.clearTimeout(automatico)
       encerrar(220)
@@ -69,7 +87,7 @@ export function IntroAnimation() {
       window.removeEventListener('touchstart', pular)
       document.body.style.overflow = overflowAnterior
     }
-  }, [montado])
+  }, [montado, modo])
 
   if (!montado) return null
 
