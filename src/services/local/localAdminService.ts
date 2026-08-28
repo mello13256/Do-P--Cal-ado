@@ -53,10 +53,18 @@ function views(products: Product[]): ProductView[] {
     .filter((item): item is ProductView => item !== null)
 }
 
+/** Sem banco, a foto vira um endereço `data:` guardado com o produto. */
+function lerComoDataUrl(arquivo: File): Promise<string> {
+  return new Promise((resolver, rejeitar) => {
+    const leitor = new FileReader()
+    leitor.onload = () => resolver(String(leitor.result))
+    leitor.onerror = () => rejeitar(new Error('Não foi possível ler a foto.'))
+    leitor.readAsDataURL(arquivo)
+  })
+}
+
 export const localAdminService: CatalogAdminService = {
-  // Sem banco não há onde guardar arquivos: no modo local as fotos são
-  // informadas pelo caminho (ex.: /produtos/foto.jpg).
-  supportsUpload: false,
+  supportsUpload: true,
 
   async listAllProducts(search) {
     const term = (search ?? '').trim().toLowerCase()
@@ -149,10 +157,16 @@ export const localAdminService: CatalogAdminService = {
     }))
   },
 
-  async uploadImage() {
-    throw new Error(
-      'O envio de fotos exige o Supabase configurado. Enquanto isso, coloque o arquivo em public/produtos/ e informe o caminho.',
-    )
+  async uploadImage(file) {
+    const url = await lerComoDataUrl(file)
+    // O armazenamento do navegador é pequeno; acima disso a foto não caberia
+    // junto com o resto do catálogo.
+    if (url.length > 900_000) {
+      throw new Error(
+        'Foto muito pesada para o modo demonstração. Com o banco configurado não há esse limite.',
+      )
+    }
+    return { url }
   },
 
   async createBrand(input: BrandInput): Promise<Brand> {

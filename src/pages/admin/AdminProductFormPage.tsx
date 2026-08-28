@@ -4,7 +4,7 @@ import { AdminNotice } from '../../components/admin/AdminNotice'
 import { Checkbox, Field, Select, TextArea, TextInput } from '../../components/admin/AdminField'
 import { Button } from '../../components/ui/Button'
 import { buttonStyles } from '../../components/ui/buttonStyles'
-import { IconTrash } from '../../components/ui/icons'
+import { IconCamera, IconTrash } from '../../components/ui/icons'
 import { availabilityLabels, genderLabels, sizeRanges } from '../../config/site'
 import { useBrands, useCategories } from '../../hooks/useCatalog'
 import { slugify } from '../../lib/text'
@@ -13,6 +13,7 @@ import { catalogAdminService } from '../../services'
 import type { ProductInput } from '../../services/admin/adminService'
 import type { Availability, Gender } from '../../types/catalog'
 import { assetUrl } from '../../lib/assets'
+import { prepararFoto } from '../../lib/imagem'
 
 const emptyProduct: ProductInput = {
   slug: '',
@@ -46,12 +47,17 @@ export default function AdminProductFormPage() {
 
   const [form, setForm] = useState<ProductInput>(emptyProduct)
   const [highlightsText, setHighlightsText] = useState('')
-  const [stock, setStock] = useState<Record<number, number>>({})
+  // Preço e estoque ficam como texto para poderem ser apagados por inteiro —
+  // com número, o campo insistia em mostrar 0.
+  const [precoTexto, setPrecoTexto] = useState('')
+  const [stock, setStock] = useState<Record<number, string>>({})
   const [loading, setLoading] = useState(!isNew)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [slugTouched, setSlugTouched] = useState(!isNew)
-  const fileInput = useRef<HTMLInputElement>(null)
+  const [enviandoFoto, setEnviandoFoto] = useState(false)
+  const arquivoInput = useRef<HTMLInputElement>(null)
+  const cameraInput = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (isNew) return
@@ -86,7 +92,8 @@ export default function AdminProductFormPage() {
           })),
         })
         setHighlightsText((product.highlights ?? []).join('\n'))
-        setStock(Object.fromEntries(sizes.map((entry) => [entry.size, entry.stock])))
+        setPrecoTexto(String(product.price))
+        setStock(Object.fromEntries(sizes.map((entry) => [entry.size, String(entry.stock)])))
       } catch (caught) {
         if (active) setError(caught instanceof Error ? caught.message : 'Falha ao carregar o produto.')
       } finally {
@@ -106,11 +113,18 @@ export default function AdminProductFormPage() {
 
   async function handleUpload(file: File) {
     setError(null)
+    setEnviandoFoto(true)
     try {
-      const { url } = await catalogAdminService.uploadImage(file, form.slug || slugify(form.name))
+      const preparada = await prepararFoto(file)
+      const { url } = await catalogAdminService.uploadImage(
+        preparada,
+        form.slug || slugify(form.name),
+      )
       update('images', [...form.images, { src: url, alt: form.name }])
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Falha ao enviar a foto.')
+    } finally {
+      setEnviandoFoto(false)
     }
   }
 
@@ -121,6 +135,7 @@ export default function AdminProductFormPage() {
 
     const payload: ProductInput = {
       ...form,
+      price: Number(precoTexto.replace(',', '.')) || 0,
       slug: form.slug || slugify(form.name),
       highlights: highlightsText
         .split('\n')
@@ -137,7 +152,7 @@ export default function AdminProductFormPage() {
       await catalogAdminService.saveProductSizes(
         saved.id,
         Object.entries(stock)
-          .map(([size, quantity]) => ({ size: Number(size), stock: quantity }))
+          .map(([size, quantidade]) => ({ size: Number(size), stock: Number(quantidade) || 0 }))
           .filter((entry) => entry.stock > 0),
       )
 
@@ -157,22 +172,10 @@ export default function AdminProductFormPage() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="pb-16">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">{isNew ? 'Novo produto' : 'Editar produto'}</h1>
-          <p className="mt-1 text-sm text-ink-600">
-            Os campos marcados com * são obrigatórios.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link to="/admin/produtos" className={buttonStyles('outline', 'md')}>
-            Cancelar
-          </Link>
-          <Button type="submit" disabled={saving}>
-            {saving ? 'Salvando…' : 'Salvar produto'}
-          </Button>
-        </div>
+    <form onSubmit={handleSubmit} className="pb-4">
+      <div>
+        <h1 className="text-2xl font-bold">{isNew ? 'Novo produto' : 'Editar produto'}</h1>
+        <p className="mt-1 text-sm text-ink-600">Os campos marcados com * são obrigatórios.</p>
       </div>
 
       {error ? (
@@ -293,8 +296,10 @@ export default function AdminProductFormPage() {
                   step="0.01"
                   min="0"
                   required
-                  value={form.price}
-                  onChange={(event) => update('price', Number(event.target.value))}
+                  inputMode="decimal"
+                  placeholder="249.90"
+                  value={precoTexto}
+                  onChange={(event) => setPrecoTexto(event.target.value)}
                 />
               )}
             </Field>
@@ -370,15 +375,14 @@ export default function AdminProductFormPage() {
                   <input
                     type="number"
                     min="0"
-                    value={stock[size] ?? 0}
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={stock[size] ?? ''}
                     aria-label={`Estoque da numeração ${size}`}
                     onChange={(event) =>
-                      setStock((current) => ({
-                        ...current,
-                        [size]: Math.max(0, Number(event.target.value)),
-                      }))
+                      setStock((current) => ({ ...current, [size]: event.target.value }))
                     }
-                    className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                    className="w-full rounded-lg border border-ink-200 px-2 py-1.5 text-sm placeholder:text-ink-300 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
                   />
                 </label>
               ))}
@@ -458,11 +462,41 @@ export default function AdminProductFormPage() {
 
               {catalogAdminService.supportsUpload ? (
                 <>
-                  <Button type="button" variant="outline" size="sm" onClick={() => fileInput.current?.click()}>
-                    Enviar arquivo
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={enviandoFoto}
+                    onClick={() => cameraInput.current?.click()}
+                  >
+                    <IconCamera className="text-base" aria-hidden="true" />
+                    {enviandoFoto ? 'Enviando…' : 'Tirar foto agora'}
                   </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={enviandoFoto}
+                    onClick={() => arquivoInput.current?.click()}
+                  >
+                    Escolher da galeria
+                  </Button>
+
+                  {/* `capture` faz o celular abrir a câmera direto, já na traseira. */}
                   <input
-                    ref={fileInput}
+                    ref={cameraInput}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="sr-only"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      if (file) void handleUpload(file)
+                      event.target.value = ''
+                    }}
+                  />
+                  <input
+                    ref={arquivoInput}
                     type="file"
                     accept="image/*"
                     className="sr-only"
@@ -476,6 +510,18 @@ export default function AdminProductFormPage() {
               ) : null}
             </div>
           </section>
+        </div>
+      </div>
+
+      {/* Salvar e cancelar ficam ao alcance do polegar, acompanhando a rolagem. */}
+      <div className="sticky bottom-0 z-20 -mx-4 mt-8 border-t border-ink-200 bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <Link to="/admin/produtos" className={buttonStyles('outline', 'md', 'sm:w-auto')}>
+            Cancelar
+          </Link>
+          <Button type="submit" size="md" disabled={saving} className="sm:w-auto">
+            {saving ? 'Salvando…' : 'Salvar produto'}
+          </Button>
         </div>
       </div>
     </form>

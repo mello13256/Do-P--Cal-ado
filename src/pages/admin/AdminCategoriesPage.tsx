@@ -197,8 +197,15 @@ export default function AdminCategoriesPage() {
                 id={id}
                 type="number"
                 min="1"
-                value={form.order ?? 99}
-                onChange={(event) => setForm((c) => ({ ...c, order: Number(event.target.value) }))}
+                inputMode="numeric"
+                placeholder="9"
+                value={form.order ?? ''}
+                onChange={(event) =>
+                  setForm((c) => ({
+                    ...c,
+                    order: event.target.value === '' ? undefined : Number(event.target.value),
+                  }))
+                }
               />
             )}
           </Field>

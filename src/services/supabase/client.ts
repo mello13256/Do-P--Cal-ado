@@ -25,8 +25,17 @@ const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || PROJETO
 const anonKey =
   (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || PROJETO_DA_LOJA.anonKey
 
+/**
+ * `VITE_CATALOGO=local` desliga o banco e faz o site usar o catálogo de
+ * `src/data`, com o painel em modo demonstração. Serve para desenvolver sem
+ * depender da internet ou do Supabase:
+ *
+ *   VITE_CATALOGO=local npm run dev
+ */
+const forcarLocal = import.meta.env.VITE_CATALOGO === 'local'
+
 /** `true` quando há projeto configurado (por variável de ambiente ou acima). */
-export const isSupabaseConfigured = Boolean(url && anonKey)
+export const isSupabaseConfigured = !forcarLocal && Boolean(url && anonKey)
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(url, anonKey, {

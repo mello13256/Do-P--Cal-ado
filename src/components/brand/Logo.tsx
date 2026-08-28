@@ -16,7 +16,12 @@ interface LogoProps {
 
 const sizes = {
   sm: { mark: 'h-9 w-9 rounded-[10px]', name: 'text-base', tagline: 'text-[0.6rem]' },
-  md: { mark: 'h-11 w-11 rounded-xl', name: 'text-lg sm:text-xl', tagline: 'text-[0.65rem]' },
+  // 20% maior que o tamanho padrão do texto, a pedido: 1.125rem → 1.35rem.
+  md: {
+    mark: 'h-11 w-11 rounded-xl',
+    name: 'text-[1.35rem] sm:text-[1.5rem]',
+    tagline: 'text-[0.65rem]',
+  },
   lg: { mark: 'h-14 w-14 rounded-2xl', name: 'text-2xl sm:text-3xl', tagline: 'text-xs' },
 } as const
 
