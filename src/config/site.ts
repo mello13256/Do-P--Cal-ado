@@ -28,9 +28,9 @@ export const siteConfig = {
     phone: '(41) 3625-1295',
     phoneHref: 'tel:+554136251295',
     /** WhatsApp comercial. */
-    whatsapp: '(41) 99790-1570',
+    whatsapp: '(41) 98425-7093',
     /** Formato internacional, sem símbolos — usado nos links wa.me. */
-    whatsappNumber: '5541997901570',
+    whatsappNumber: '5541984257093',
     email: 'dopecalcado@gmail.com',
   },
 

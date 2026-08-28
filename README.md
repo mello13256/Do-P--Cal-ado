@@ -305,4 +305,4 @@ e o código dele só é baixado por quem acessa `/admin`.
 ## Contato da loja
 
 **Do Pé Calçados** — Av. João Franco, 123 - Centro, Contenda - Paraná
-Telefone (41) 3625-1295 · WhatsApp (41) 99790-1570 · dopecalcado@gmail.com
+Telefone (41) 3625-1295 · WhatsApp (41) 98425-7093 · dopecalcado@gmail.com
