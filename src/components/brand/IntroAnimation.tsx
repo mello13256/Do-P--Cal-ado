@@ -5,12 +5,28 @@ import { cn } from '../../lib/cn'
  * Abertura do site: a pegada da loja se formando na tela.
  *
  * A ordem imita uma pegada acontecendo agora — a sola encosta primeiro e os
- * dedos vêm em seguida, do dedão ao menor. Dura cerca de 3 segundos e some
- * sozinha; um toque, um clique ou qualquer tecla pula na hora.
+ * dedos vêm em seguida, do dedão ao menor. Com todos os dedos no lugar, a
+ * pegada fica sozinha na tela por um instante antes de o nome entrar.
  *
- * Não aparece para quem pediu menos animação no sistema (`prefers-reduced-motion`)
- * nem no painel administrativo, onde só atrapalharia o trabalho.
+ * Um toque, um clique, uma tecla ou uma rolagem pulam a abertura na hora.
+ * Todos os tempos ficam na tabela abaixo, em segundos.
  */
+
+/** Tempos da abertura, em segundos — mexa aqui para mudar o ritmo. */
+const TEMPOS = {
+  /** Instante em que o último dedo termina de aparecer. */
+  fimDosDedos: 2,
+  /** Pausa com a pegada pronta, sozinha na tela. */
+  pausaComAPegada: 1,
+  /** Quanto o nome e o "Desde 1989" ficam antes de o site entrar. */
+  leituraDoNome: 0.9,
+  /** Transição de saída da tela de abertura. */
+  saida: 0.42,
+}
+
+/** A partir daqui os tempos são calculados; não precisa mexer. */
+const INICIO_DO_TEXTO = TEMPOS.fimDosDedos + TEMPOS.pausaComAPegada
+const DURACAO_TOTAL = (INICIO_DO_TEXTO + TEMPOS.leituraDoNome) * 1000
 
 /** Sola e dedos, na mesma geometria do logotipo (ver `FootprintMark`). */
 const PARTES = [
@@ -22,7 +38,7 @@ const PARTES = [
   { cx: 80, cy: 34, rx: 4, ry: 5, rotacao: 18, atraso: 1.65, duracao: 0.34, dedo: true },
 ]
 
-const DURACAO_SAIDA = 420
+const DURACAO_SAIDA = TEMPOS.saida * 1000
 
 /**
  * `completa` = a pegada se formando.
@@ -62,7 +78,7 @@ export function IntroAnimation() {
       fim = window.setTimeout(() => setMontado(false), atraso)
     }
 
-    const duracaoTotal = modo === 'simples' ? 1500 : 2900
+    const duracaoTotal = modo === 'simples' ? 1500 : DURACAO_TOTAL
     const automatico = window.setTimeout(() => encerrar(DURACAO_SAIDA), duracaoTotal)
     const pular = () => {
       window.clearTimeout(automatico)
@@ -133,19 +149,19 @@ export function IntroAnimation() {
 
       <p
         className="intro-parte intro-entrada mt-2 font-serif text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl"
-        style={{ animationDuration: '0.5s', animationDelay: '2s' }}
+        style={{ animationDuration: '0.5s', animationDelay: `${INICIO_DO_TEXTO}s` }}
       >
         Do <span className="text-brand-500">Pé</span> Calçados
       </p>
 
       <span
         className="intro-parte intro-barra mt-3 h-px w-24 origin-left bg-brand-500/60"
-        style={{ animationDuration: '0.6s', animationDelay: '2.15s' }}
+        style={{ animationDuration: '0.6s', animationDelay: `${INICIO_DO_TEXTO + 0.15}s` }}
       />
 
       <p
         className="intro-parte intro-entrada mt-3 text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-ink-400"
-        style={{ animationDuration: '0.5s', animationDelay: '2.25s' }}
+        style={{ animationDuration: '0.5s', animationDelay: `${INICIO_DO_TEXTO + 0.25}s` }}
       >
         Desde 1989
       </p>
