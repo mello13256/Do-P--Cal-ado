@@ -154,11 +154,10 @@ export const staticCatalogService: CatalogService = {
   },
 
   async getFeaturedProducts(limit = 8) {
-    const all = productViews()
-    const featured = all.filter((product) => product.featured)
-    const rest = all.filter((product) => !product.featured)
-    return [...featured, ...rest]
-      .filter((product) => product.availability === 'em-estoque')
+    // Só os produtos marcados como destaque no cadastro — tirar a marcação
+    // tem de tirar o produto da vitrine da página inicial.
+    return productViews()
+      .filter((product) => product.featured && product.availability === 'em-estoque')
       .slice(0, limit)
   },
 

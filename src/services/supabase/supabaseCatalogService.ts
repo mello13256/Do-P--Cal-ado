@@ -222,7 +222,8 @@ export const supabaseCatalogService: CatalogService = {
       .select(PRODUCT_SELECT)
       .eq('is_active', true)
       .eq('availability', 'em-estoque')
-      .order('featured', { ascending: false })
+      // Só os marcados como destaque: desmarcar no painel tira da vitrine.
+      .eq('featured', true)
       .order('created_at', { ascending: false })
       .limit(limit)
 
