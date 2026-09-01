@@ -31,7 +31,7 @@ export const siteConfig = {
     whatsapp: '(41) 98425-7093',
     /** Formato internacional, sem símbolos — usado nos links wa.me. */
     whatsappNumber: '5541984257093',
-    email: 'dopecalcado@gmail.com',
+    email: 'dopecalcado@hotmail.com',
   },
 
   address: {
