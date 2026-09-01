@@ -47,8 +47,7 @@ export const siteConfig = {
   },
 
   hours: [
-    { days: 'Segunda a sexta', time: '09h00 às 18h00' },
-    { days: 'Sábado', time: '09h00 às 13h00' },
+    { days: 'Segunda a sábado', time: '08h30 às 18h00' },
     { days: 'Domingo e feriados', time: 'Fechado' },
   ],
 
