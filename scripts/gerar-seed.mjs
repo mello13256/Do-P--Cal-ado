@@ -67,6 +67,12 @@ lines.push('  image_url = excluded.image_url, sort_order = excluded.sort_order;'
 lines.push('')
 
 lines.push('-- Produtos -------------------------------------------------------------')
+if (products.length === 0) {
+  // Catálogo vazio: os produtos reais vivem no banco, cadastrados pelo painel.
+  lines.push('-- (nenhum produto no arquivo local — cadastre pelo painel em /admin)')
+  lines.push('')
+}
+if (products.length > 0) {
 lines.push(
   'insert into public.products (slug, name, brand_id, category_id, gender, price, availability, description, highlights, sizes, featured, sku, created_at) values',
 )
@@ -86,6 +92,7 @@ lines.push('  name = excluded.name, brand_id = excluded.brand_id, category_id = 
 lines.push('  gender = excluded.gender, price = excluded.price, availability = excluded.availability,')
 lines.push('  description = excluded.description, highlights = excluded.highlights, sizes = excluded.sizes,')
 lines.push('  featured = excluded.featured, sku = excluded.sku;')
+}
 lines.push('')
 
 lines.push('-- Fotos dos produtos ---------------------------------------------------')

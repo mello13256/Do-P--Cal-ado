@@ -1,3 +1,4 @@
+import { precoDeVenda } from '../lib/preco'
 import { normalizeText } from '../lib/text'
 import type {
   Brand,
@@ -67,9 +68,9 @@ function sortProducts(items: ProductView[], sort: CatalogQuery['sort']): Product
   const sorted = [...items]
   switch (sort) {
     case 'menor-preco':
-      return sorted.sort((a, b) => a.price - b.price)
+      return sorted.sort((a, b) => precoDeVenda(a) - precoDeVenda(b))
     case 'maior-preco':
-      return sorted.sort((a, b) => b.price - a.price)
+      return sorted.sort((a, b) => precoDeVenda(b) - precoDeVenda(a))
     case 'nome':
       return sorted.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
     case 'novidades':
@@ -106,8 +107,8 @@ function applyFilters(query: CatalogQuery): ProductView[] {
     if (!matchesGender(product, genders)) return false
     if (sizes.length > 0 && !sizes.some((size) => product.sizes.includes(size))) return false
     if (availability.length > 0 && !availability.includes(product.availability)) return false
-    if (typeof minPrice === 'number' && product.price < minPrice) return false
-    if (typeof maxPrice === 'number' && product.price > maxPrice) return false
+    if (typeof minPrice === 'number' && precoDeVenda(product) < minPrice) return false
+    if (typeof maxPrice === 'number' && precoDeVenda(product) > maxPrice) return false
     if (!matchesSearch(product, search)) return false
     return true
   })
@@ -178,7 +179,7 @@ export const staticCatalogService: CatalogService = {
   async getPriceRange(): Promise<PriceRange> {
     const all = productViews()
     if (all.length === 0) return { min: 0, max: 0 }
-    const prices = all.map((product) => product.price)
+    const prices = all.map((product) => precoDeVenda(product))
     return {
       min: Math.floor(Math.min(...prices)),
       max: Math.ceil(Math.max(...prices)),

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Seo } from '../components/Seo'
+import { EtiquetaDoProduto } from '../components/catalog/EtiquetaDoProduto'
+import { PrecoDoProduto } from '../components/catalog/PrecoDoProduto'
 import { ProductGrid } from '../components/catalog/ProductGrid'
 import { ProductGallery } from '../components/product/ProductGallery'
 import { SizePicker } from '../components/product/SizePicker'
@@ -15,7 +17,6 @@ import { genderLabels } from '../config/site'
 import { useCart } from '../hooks/useCart'
 import { useAsync } from '../hooks/useAsync'
 import { useProduct } from '../hooks/useCatalog'
-import { formatPrice } from '../lib/format'
 import { formatSizeRange } from '../lib/sizes'
 import { productInterestMessage, whatsappLink } from '../lib/whatsapp'
 import { catalogService } from '../services'
@@ -100,6 +101,9 @@ export default function ProductPage() {
 
           <div>
             <div className="flex flex-wrap items-center gap-2">
+              {product.badgeText ? (
+                <EtiquetaDoProduto texto={product.badgeText} cor={product.badgeColor} />
+              ) : null}
               <Link
                 to={`/produtos?marca=${product.brand.slug}`}
                 className="text-xs font-bold uppercase tracking-[0.16em] text-ink-500 transition-colors hover:text-brand-600"
@@ -130,7 +134,7 @@ export default function ProductPage() {
               {product.sku ? ` · Ref. ${product.sku}` : ''}
             </p>
 
-            <p className="mt-5 text-3xl font-bold text-ink-900">{formatPrice(product.price)}</p>
+            <PrecoDoProduto produto={product} tamanho="pagina" className="mt-5" />
 
             {needsSize ? (
               <div className="mt-7">

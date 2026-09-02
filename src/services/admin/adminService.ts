@@ -1,4 +1,12 @@
-import type { Availability, Brand, Category, Gender, Product, ProductView } from '../../types/catalog'
+import type {
+  Availability,
+  BadgeColor,
+  Brand,
+  Category,
+  Gender,
+  Product,
+  ProductView,
+} from '../../types/catalog'
 
 /** Dados de um produto no formulário do painel. */
 export interface ProductInput {
@@ -8,6 +16,11 @@ export interface ProductInput {
   categoryId: string
   gender: Gender
   price: number
+  /** Preço promocional; vazio quando não há promoção. */
+  promoPrice?: number
+  /** Etiqueta livre exibida no card: "Lançamento", "Novo"… */
+  badgeText?: string
+  badgeColor?: BadgeColor
   availability: Availability
   description: string
   highlights: string[]

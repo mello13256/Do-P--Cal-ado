@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { precoDeVenda } from '../lib/preco'
 import type { ProductView } from '../types/catalog'
 import { CartContext, type CartItem } from './cart-context'
 
@@ -62,7 +63,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         name: product.name,
         brandName: product.brand.name,
         categoryName: product.category.name,
-        price: product.price,
+        price: precoDeVenda(product),
         size,
         quantity: Math.min(MAX_QUANTITY, quantity),
         image: product.images[0]?.src || undefined,

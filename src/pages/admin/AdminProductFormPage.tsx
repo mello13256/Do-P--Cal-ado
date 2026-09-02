@@ -11,7 +11,8 @@ import { slugify } from '../../lib/text'
 import { sizeRange } from '../../lib/sizes'
 import { catalogAdminService } from '../../services'
 import type { ProductInput } from '../../services/admin/adminService'
-import type { Availability, Gender } from '../../types/catalog'
+import type { Availability, BadgeColor, Gender } from '../../types/catalog'
+import { CORES_DE_ETIQUETA, EtiquetaDoProduto } from '../../components/catalog/EtiquetaDoProduto'
 import { assetUrl } from '../../lib/assets'
 import { prepararFoto } from '../../lib/imagem'
 
@@ -22,6 +23,9 @@ const emptyProduct: ProductInput = {
   categoryId: '',
   gender: 'unissex',
   price: 0,
+  promoPrice: undefined,
+  badgeText: '',
+  badgeColor: 'vermelho',
   availability: 'em-estoque',
   description: '',
   highlights: [],
@@ -29,6 +33,18 @@ const emptyProduct: ProductInput = {
   sku: '',
   isActive: true,
   images: [],
+}
+
+/**
+ * Traduz o erro do banco quando a atualização de promoção/etiqueta ainda não
+ * foi aplicada — assim a mensagem diz o que fazer, em vez de citar colunas.
+ */
+function mensagemDeErro(erro: unknown, padrao: string): string {
+  const texto = erro instanceof Error ? erro.message : padrao
+  if (/promo_price|badge_text|badge_color|column .* does not exist/i.test(texto)) {
+    return 'O banco ainda não tem os campos de promoção e etiqueta. Rode a atualização de banco (supabase/migrations/…promocao_e_etiqueta.sql) no SQL Editor e salve de novo.'
+  }
+  return texto
 }
 
 /** Numerações oferecidas para cada público. */
@@ -50,6 +66,7 @@ export default function AdminProductFormPage() {
   // Preço e estoque ficam como texto para poderem ser apagados por inteiro —
   // com número, o campo insistia em mostrar 0.
   const [precoTexto, setPrecoTexto] = useState('')
+  const [precoPromoTexto, setPrecoPromoTexto] = useState('')
   const [stock, setStock] = useState<Record<number, string>>({})
   const [loading, setLoading] = useState(!isNew)
   const [saving, setSaving] = useState(false)
@@ -80,6 +97,9 @@ export default function AdminProductFormPage() {
           categoryId: product.categoryId,
           gender: product.gender,
           price: product.price,
+          promoPrice: product.promoPrice,
+          badgeText: product.badgeText ?? '',
+          badgeColor: product.badgeColor ?? 'vermelho',
           availability: product.availability,
           description: product.description,
           highlights: product.highlights ?? [],
@@ -93,6 +113,7 @@ export default function AdminProductFormPage() {
         })
         setHighlightsText((product.highlights ?? []).join('\n'))
         setPrecoTexto(String(product.price))
+        setPrecoPromoTexto(product.promoPrice ? String(product.promoPrice) : '')
         setStock(Object.fromEntries(sizes.map((entry) => [entry.size, String(entry.stock)])))
       } catch (caught) {
         if (active) setError(caught instanceof Error ? caught.message : 'Falha ao carregar o produto.')
@@ -106,6 +127,11 @@ export default function AdminProductFormPage() {
   }, [id, isNew])
 
   const availableSizes = useMemo(() => sizesForGender(form.gender), [form.gender])
+
+  const precoNormal = Number(precoTexto.replace(',', '.')) || 0
+  const precoPromo = Number(precoPromoTexto.replace(',', '.')) || 0
+  const precoPromoValido = precoPromo > 0 && precoNormal > 0 && precoPromo < precoNormal
+  const descontoAtual = precoPromoValido ? Math.round((1 - precoPromo / precoNormal) * 100) : 0
 
   function update<K extends keyof ProductInput>(key: K, value: ProductInput[K]) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -136,6 +162,8 @@ export default function AdminProductFormPage() {
     const payload: ProductInput = {
       ...form,
       price: Number(precoTexto.replace(',', '.')) || 0,
+      promoPrice: precoPromoTexto.trim() ? Number(precoPromoTexto.replace(',', '.')) : undefined,
+      badgeText: form.badgeText?.trim() || undefined,
       slug: form.slug || slugify(form.name),
       highlights: highlightsText
         .split('\n')
@@ -158,7 +186,7 @@ export default function AdminProductFormPage() {
 
       navigate('/admin/produtos')
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Não foi possível salvar o produto.')
+      setError(mensagemDeErro(caught, 'Não foi possível salvar o produto.'))
       setSaving(false)
     }
   }
@@ -319,7 +347,68 @@ export default function AdminProductFormPage() {
                 </Select>
               )}
             </Field>
+
+            <Field
+              label="Preço promocional (R$)"
+              hint={
+                precoPromoValido
+                  ? `${descontoAtual}% de desconto — o preço antigo aparece riscado no site.`
+                  : 'Deixe vazio quando não houver promoção.'
+              }
+              error={precoPromoTexto.trim() && !precoPromoValido ? 'Precisa ser menor que o preço normal.' : undefined}
+            >
+              {(fieldId) => (
+                <TextInput
+                  id={fieldId}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  inputMode="decimal"
+                  placeholder="199.90"
+                  value={precoPromoTexto}
+                  onChange={(event) => setPrecoPromoTexto(event.target.value)}
+                />
+              )}
+            </Field>
           </div>
+
+          {/* Etiqueta livre: "Lançamento", "Novo", "Últimas peças"… */}
+          <div className="grid gap-5 sm:grid-cols-[1.4fr_1fr]">
+            <Field label="Etiqueta" hint="Texto curto que aparece sobre a foto. Vazio = sem etiqueta.">
+              {(fieldId) => (
+                <TextInput
+                  id={fieldId}
+                  maxLength={18}
+                  placeholder="Lançamento"
+                  value={form.badgeText ?? ''}
+                  onChange={(event) => update('badgeText', event.target.value)}
+                />
+              )}
+            </Field>
+
+            <Field label="Cor da etiqueta">
+              {(fieldId) => (
+                <Select
+                  id={fieldId}
+                  value={form.badgeColor ?? 'vermelho'}
+                  onChange={(event) => update('badgeColor', event.target.value as BadgeColor)}
+                >
+                  {CORES_DE_ETIQUETA.map((cor) => (
+                    <option key={cor.valor} value={cor.valor}>
+                      {cor.nome}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </Field>
+          </div>
+
+          {form.badgeText?.trim() ? (
+            <p className="flex items-center gap-2 text-sm text-ink-500">
+              Como vai aparecer:
+              <EtiquetaDoProduto texto={form.badgeText.trim()} cor={form.badgeColor} />
+            </p>
+          ) : null}
 
           <Field label="Descrição">
             {(fieldId) => (

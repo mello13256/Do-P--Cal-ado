@@ -14,8 +14,48 @@ import { mapBrand, mapCategory, mapProduct } from './mappers'
 import type { BrandRow, CategoryRow, ProductRow } from './types'
 
 const DEFAULT_PER_PAGE = 12
-const PRODUCT_SELECT =
+const CAMPOS_BASICOS =
   'id, slug, name, brand_id, category_id, gender, price, availability, description, highlights, sizes, featured, sku, is_active, created_at, product_images(id, product_id, url, alt, sort_order)'
+
+/** Colunas de promoção e etiqueta, criadas pela migração 0004. */
+const CAMPOS_COM_PROMOCAO =
+  'id, slug, name, brand_id, category_id, gender, price, promo_price, effective_price, badge_text, badge_color, availability, description, highlights, sizes, featured, sku, is_active, created_at, product_images(id, product_id, url, alt, sort_order)'
+
+/**
+ * O site é publicado antes de o banco ser atualizado. Enquanto a migração 0004
+ * não roda, as colunas novas não existem — em vez de deixar a loja no ar sem
+ * catálogo, detectamos isso na primeira consulta e seguimos sem elas.
+ */
+let bancoTemPromocao = true
+let PRODUCT_SELECT = CAMPOS_COM_PROMOCAO
+let COLUNA_DE_PRECO = 'effective_price'
+
+function ehColunaAusente(erro: unknown): boolean {
+  const mensagem = String((erro as { message?: string })?.message ?? erro)
+  return /column .* does not exist|promo_price|effective_price|badge_text|badge_color/i.test(mensagem)
+}
+
+function desligarPromocao() {
+  if (!bancoTemPromocao) return
+  bancoTemPromocao = false
+  PRODUCT_SELECT = CAMPOS_BASICOS
+  COLUNA_DE_PRECO = 'price'
+  console.warn(
+    '[catálogo] o banco ainda não tem as colunas de promoção/etiqueta — rode a migração 0004 (supabase/migrations). O site segue funcionando sem elas.',
+  )
+}
+
+/** Executa a consulta e, se faltarem as colunas novas, repete sem elas. */
+async function consultar<T>(
+  montar: () => PromiseLike<{ data: T | null; error: unknown; count?: number | null }>,
+) {
+  const resultado = await montar()
+  if (resultado.error && bancoTemPromocao && ehColunaAusente(resultado.error)) {
+    desligarPromocao()
+    return montar()
+  }
+  return resultado
+}
 
 interface Taxonomy {
   brands: (Brand & { partner: boolean })[]
@@ -102,8 +142,8 @@ function buildQuery(query: CatalogQuery, data: Taxonomy) {
     request = request.in('availability', query.availability)
   }
 
-  if (typeof query.minPrice === 'number') request = request.gte('price', query.minPrice)
-  if (typeof query.maxPrice === 'number') request = request.lte('price', query.maxPrice)
+  if (typeof query.minPrice === 'number') request = request.gte(COLUNA_DE_PRECO, query.minPrice)
+  if (typeof query.maxPrice === 'number') request = request.lte(COLUNA_DE_PRECO, query.maxPrice)
 
   // Busca: cada palavra precisa aparecer no texto do produto, no nome da marca
   // ou no nome da categoria (tudo sem acento — ver coluna `search_text`).
@@ -128,10 +168,10 @@ function buildQuery(query: CatalogQuery, data: Taxonomy) {
 
   switch (query.sort) {
     case 'menor-preco':
-      request = request.order('price', { ascending: true })
+      request = request.order(COLUNA_DE_PRECO, { ascending: true })
       break
     case 'maior-preco':
-      request = request.order('price', { ascending: false })
+      request = request.order(COLUNA_DE_PRECO, { ascending: false })
       break
     case 'nome':
       request = request.order('name', { ascending: true })
@@ -164,12 +204,14 @@ export const supabaseCatalogService: CatalogService = {
     const page = Math.max(1, query.page ?? 1)
     const from = (page - 1) * perPage
 
-    const { data: rows, count, error } = await buildQuery(query, data).range(from, from + perPage - 1)
+    const { data: rows, count, error } = await consultar(() =>
+      buildQuery(query, data).range(from, from + perPage - 1),
+    )
     if (error) throw error
 
     const total = count ?? 0
     const totalPages = Math.max(1, Math.ceil(total / perPage))
-    const items = (rows as ProductRow[])
+    const items = (rows as unknown as ProductRow[])
       .map((row) => toView(row, data))
       .filter((item): item is ProductView => item !== null)
 
@@ -185,12 +227,14 @@ export const supabaseCatalogService: CatalogService = {
   async getProductBySlug(slug) {
     const client = requireSupabase()
     const data = await taxonomy()
-    const { data: row, error } = await client
-      .from('products')
-      .select(PRODUCT_SELECT)
-      .eq('slug', slug)
-      .eq('is_active', true)
-      .maybeSingle()
+    const { data: row, error } = await consultar(() =>
+      client
+        .from('products')
+        .select(PRODUCT_SELECT)
+        .eq('slug', slug)
+        .eq('is_active', true)
+        .maybeSingle(),
+    )
 
     if (error) throw error
     return row ? toView(row as ProductRow, data) : null
@@ -199,17 +243,19 @@ export const supabaseCatalogService: CatalogService = {
   async getRelatedProducts(product, limit = 4) {
     const client = requireSupabase()
     const data = await taxonomy()
-    const { data: rows, error } = await client
-      .from('products')
-      .select(PRODUCT_SELECT)
-      .eq('is_active', true)
-      .neq('id', product.id)
-      .or(`category_id.eq.${product.categoryId},brand_id.eq.${product.brandId}`)
-      .order('availability', { ascending: true })
-      .limit(limit)
+    const { data: rows, error } = await consultar(() =>
+      client
+        .from('products')
+        .select(PRODUCT_SELECT)
+        .eq('is_active', true)
+        .neq('id', product.id)
+        .or(`category_id.eq.${product.categoryId},brand_id.eq.${product.brandId}`)
+        .order('availability', { ascending: true })
+        .limit(limit),
+    )
 
     if (error) throw error
-    return (rows as ProductRow[])
+    return (rows as unknown as ProductRow[])
       .map((row) => toView(row, data))
       .filter((item): item is ProductView => item !== null)
   },
@@ -217,18 +263,20 @@ export const supabaseCatalogService: CatalogService = {
   async getFeaturedProducts(limit = 8) {
     const client = requireSupabase()
     const data = await taxonomy()
-    const { data: rows, error } = await client
-      .from('products')
-      .select(PRODUCT_SELECT)
-      .eq('is_active', true)
-      .eq('availability', 'em-estoque')
-      // Só os marcados como destaque: desmarcar no painel tira da vitrine.
-      .eq('featured', true)
-      .order('created_at', { ascending: false })
-      .limit(limit)
+    const { data: rows, error } = await consultar(() =>
+      client
+        .from('products')
+        .select(PRODUCT_SELECT)
+        .eq('is_active', true)
+        .eq('availability', 'em-estoque')
+        // Só os marcados como destaque: desmarcar no painel tira da vitrine.
+        .eq('featured', true)
+        .order('created_at', { ascending: false })
+        .limit(limit),
+    )
 
     if (error) throw error
-    return (rows as ProductRow[])
+    return (rows as unknown as ProductRow[])
       .map((row) => toView(row, data))
       .filter((item): item is ProductView => item !== null)
   },
@@ -251,12 +299,18 @@ export const supabaseCatalogService: CatalogService = {
   async getPriceRange(): Promise<PriceRange> {
     const client = requireSupabase()
     const [lowest, highest] = await Promise.all([
-      client.from('products').select('price').eq('is_active', true).order('price').limit(1).maybeSingle(),
       client
         .from('products')
-        .select('price')
+        .select(COLUNA_DE_PRECO)
         .eq('is_active', true)
-        .order('price', { ascending: false })
+        .order(COLUNA_DE_PRECO)
+        .limit(1)
+        .maybeSingle(),
+      client
+        .from('products')
+        .select(COLUNA_DE_PRECO)
+        .eq('is_active', true)
+        .order(COLUNA_DE_PRECO, { ascending: false })
         .limit(1)
         .maybeSingle(),
     ])
@@ -265,9 +319,12 @@ export const supabaseCatalogService: CatalogService = {
     if (highest.error) throw highest.error
     if (!lowest.data || !highest.data) return { min: 0, max: 0 }
 
+    const valor = (linha: unknown) =>
+      Number((linha as Record<string, number | string>)[COLUNA_DE_PRECO])
+
     return {
-      min: Math.floor(Number((lowest.data as { price: number | string }).price)),
-      max: Math.ceil(Number((highest.data as { price: number | string }).price)),
+      min: Math.floor(valor(lowest.data)),
+      max: Math.ceil(valor(highest.data)),
     }
   },
 

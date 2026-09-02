@@ -22,9 +22,12 @@ export function allSizes(): number[] {
   return [...set].sort((a, b) => a - b)
 }
 
-/** Texto compacto de numeração: "33 ao 40". */
+/**
+ * Texto compacto de numeração: "33 ao 40", "40" ou "Sob consulta".
+ * Quem chama é que escreve a palavra "Numeração", quando fizer sentido.
+ */
 export function formatSizeRange(sizes: number[]): string {
-  if (sizes.length === 0) return 'Numeração sob consulta'
-  if (sizes.length === 1) return `Numeração ${sizes[0]}`
+  if (sizes.length === 0) return 'Sob consulta'
+  if (sizes.length === 1) return String(sizes[0])
   return `${sizes[0]} ao ${sizes[sizes.length - 1]}`
 }

@@ -1,4 +1,6 @@
-import type { Brand, Category, Product, ProductImage } from '../../types/catalog'
+import type { BadgeColor, Brand, Category, Product, ProductImage } from '../../types/catalog'
+
+const CORES_DE_ETIQUETA: BadgeColor[] = ['vermelho', 'preto', 'verde', 'azul', 'dourado']
 import type { BrandRow, CategoryRow, ProductRow } from './types'
 
 /** Converte as linhas do banco nos modelos usados pela interface. */
@@ -42,6 +44,11 @@ export function mapProduct(row: ProductRow): Product {
     gender: row.gender,
     sizes: [...(row.sizes ?? [])].sort((a, b) => a - b),
     price: Number(row.price),
+    promoPrice: row.promo_price === null ? undefined : Number(row.promo_price),
+    badgeText: row.badge_text ?? undefined,
+    badgeColor: CORES_DE_ETIQUETA.includes(row.badge_color as BadgeColor)
+      ? (row.badge_color as BadgeColor)
+      : undefined,
     availability: row.availability,
     description: row.description,
     highlights: row.highlights ?? [],

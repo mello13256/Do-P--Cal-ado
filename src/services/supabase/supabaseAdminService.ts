@@ -13,7 +13,7 @@ import { mapBrand, mapCategory, mapProduct } from './mappers'
 import type { BrandRow, CategoryRow, ProductRow, ProductSizeRow } from './types'
 
 const PRODUCT_SELECT =
-  'id, slug, name, brand_id, category_id, gender, price, availability, description, highlights, sizes, featured, sku, is_active, created_at, product_images(id, product_id, url, alt, sort_order)'
+  'id, slug, name, brand_id, category_id, gender, price, promo_price, effective_price, badge_text, badge_color, availability, description, highlights, sizes, featured, sku, is_active, created_at, product_images(id, product_id, url, alt, sort_order)'
 
 const BUCKET = 'catalogo'
 
@@ -25,6 +25,9 @@ function toRow(input: ProductInput) {
     category_id: input.categoryId,
     gender: input.gender,
     price: input.price,
+    promo_price: input.promoPrice ?? null,
+    badge_text: input.badgeText?.trim() || null,
+    badge_color: input.badgeText?.trim() ? (input.badgeColor ?? 'vermelho') : null,
     availability: input.availability,
     description: input.description,
     highlights: input.highlights,

@@ -33,13 +33,8 @@ on conflict (slug) do update set
   image_url = excluded.image_url, sort_order = excluded.sort_order;
 
 -- Produtos -------------------------------------------------------------
-insert into public.products (slug, name, brand_id, category_id, gender, price, availability, description, highlights, sizes, featured, sku, created_at) values
+-- (nenhum produto no arquivo local — cadastre pelo painel em /admin)
 
-on conflict (slug) do update set
-  name = excluded.name, brand_id = excluded.brand_id, category_id = excluded.category_id,
-  gender = excluded.gender, price = excluded.price, availability = excluded.availability,
-  description = excluded.description, highlights = excluded.highlights, sizes = excluded.sizes,
-  featured = excluded.featured, sku = excluded.sku;
 
 -- Fotos dos produtos ---------------------------------------------------
 -- (nenhuma foto cadastrada ainda — os produtos usam o placeholder do site)

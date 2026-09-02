@@ -8,7 +8,7 @@
 -- Pode rodar de novo sem medo: nada é duplicado.
 -- =============================================================================
 
--- ####################  1/4 — ESTRUTURA  ####################
+-- ####################  1/5 — ESTRUTURA  ####################
 -- =============================================================================
 -- Do Pé Calçados — estrutura do catálogo
 -- =============================================================================
@@ -198,7 +198,7 @@ begin
 end;
 $$;
 
--- ####################  2/4 — REGRAS DE ACESSO  ####################
+-- ####################  2/5 — REGRAS DE ACESSO  ####################
 -- =============================================================================
 -- Do Pé Calçados — políticas de acesso (Row Level Security)
 -- =============================================================================
@@ -277,7 +277,7 @@ drop policy if exists "administrador ve o proprio cadastro" on public.admins;
 create policy "administrador ve o proprio cadastro"
   on public.admins for select using (user_id = auth.uid());
 
--- ####################  3/4 — FOTOS (STORAGE)  ####################
+-- ####################  3/5 — FOTOS (STORAGE)  ####################
 -- =============================================================================
 -- Do Pé Calçados — armazenamento das fotos
 -- =============================================================================
@@ -309,7 +309,34 @@ create policy "administradores removem fotos"
   on storage.objects for delete
   using (bucket_id = 'catalogo' and public.is_admin());
 
--- ####################  4/4 — MARCAS E CATEGORIAS  ####################
+-- ####################  4/5 — PROMOÇÃO E ETIQUETA  ####################
+-- =============================================================================
+-- Do Pé Calçados — preço promocional e etiqueta do produto
+-- =============================================================================
+-- Acrescenta:
+--   • promo_price   → preço em promoção (o antigo aparece riscado no site);
+--   • badge_text    → etiqueta livre: "Lançamento", "Novo", "Últimas peças"…
+--   • badge_color   → cor da etiqueta;
+--   • effective_price → coluna calculada com o preço que vale hoje, usada
+--     pelos filtros e pela ordenação por preço.
+--
+-- Pode rodar mais de uma vez sem problema.
+-- =============================================================================
+
+alter table public.products
+  add column if not exists promo_price numeric(10, 2)
+    check (promo_price is null or promo_price >= 0),
+  add column if not exists badge_text text,
+  add column if not exists badge_color text
+    check (badge_color is null or badge_color in ('vermelho', 'preto', 'verde', 'azul', 'dourado'));
+
+alter table public.products
+  add column if not exists effective_price numeric(10, 2)
+    generated always as (coalesce(promo_price, price)) stored;
+
+create index if not exists products_effective_price_idx on public.products (effective_price);
+
+-- ####################  5/5 — MARCAS E CATEGORIAS  ####################
 -- Gerado por `npm run seed:sql` — não edite à mão.
 -- Reexecutar é seguro: os registros são atualizados pelo slug (upsert).
 
@@ -345,13 +372,8 @@ on conflict (slug) do update set
   image_url = excluded.image_url, sort_order = excluded.sort_order;
 
 -- Produtos -------------------------------------------------------------
-insert into public.products (slug, name, brand_id, category_id, gender, price, availability, description, highlights, sizes, featured, sku, created_at) values
+-- (nenhum produto no arquivo local — cadastre pelo painel em /admin)
 
-on conflict (slug) do update set
-  name = excluded.name, brand_id = excluded.brand_id, category_id = excluded.category_id,
-  gender = excluded.gender, price = excluded.price, availability = excluded.availability,
-  description = excluded.description, highlights = excluded.highlights, sizes = excluded.sizes,
-  featured = excluded.featured, sku = excluded.sku;
 
 -- Fotos dos produtos ---------------------------------------------------
 -- (nenhuma foto cadastrada ainda — os produtos usam o placeholder do site)

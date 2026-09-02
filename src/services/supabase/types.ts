@@ -43,6 +43,11 @@ export interface ProductRow {
   category_id: string
   gender: 'masculino' | 'feminino' | 'infantil' | 'unissex'
   price: number | string
+  promo_price: number | string | null
+  /** Coluna calculada no banco: promo_price quando existe, senão price. */
+  effective_price?: number | string | null
+  badge_text: string | null
+  badge_color: string | null
   availability: 'em-estoque' | 'indisponivel'
   description: string
   highlights: string[] | null

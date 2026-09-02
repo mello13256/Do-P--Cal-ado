@@ -2,12 +2,14 @@ import { Link } from 'react-router-dom'
 import { genderLabels } from '../../config/site'
 import { useCart } from '../../hooks/useCart'
 import { cn } from '../../lib/cn'
-import { formatPrice } from '../../lib/format'
+import { descontoEmPorcento, temPromocao } from '../../lib/preco'
 import { formatSizeRange } from '../../lib/sizes'
 import type { ProductView } from '../../types/catalog'
 import { MediaPlaceholder } from '../brand/MediaPlaceholder'
 import { Badge } from '../ui/Badge'
 import { IconCart } from '../ui/icons'
+import { EtiquetaDoProduto } from './EtiquetaDoProduto'
+import { PrecoDoProduto } from './PrecoDoProduto'
 import { assetUrl } from '../../lib/assets'
 
 interface ProductCardProps {
@@ -42,8 +44,13 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
         )}
 
         <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+          {product.badgeText ? (
+            <EtiquetaDoProduto texto={product.badgeText} cor={product.badgeColor} />
+          ) : null}
+          {temPromocao(product) ? (
+            <Badge tone="brand">-{descontoEmPorcento(product)}%</Badge>
+          ) : null}
           {!inStock ? <Badge tone="muted">Indisponível</Badge> : null}
-          {inStock && product.featured ? <Badge tone="brand">Destaque</Badge> : null}
         </div>
 
         {canQuickAdd ? (
@@ -78,7 +85,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
         ) : null}
 
         <div className="mt-auto flex items-end justify-between gap-2 pt-4">
-          <p className="text-lg font-bold text-ink-900">{formatPrice(product.price)}</p>
+          <PrecoDoProduto produto={product} />
           <span className="whitespace-nowrap text-[0.7rem] font-bold uppercase tracking-wide text-brand-600 transition-colors group-hover:text-brand-700">
             Ver detalhes
           </span>

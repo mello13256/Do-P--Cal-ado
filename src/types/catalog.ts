@@ -41,6 +41,9 @@ export interface ProductImage {
   alt: string
 }
 
+/** Cores possíveis para a etiqueta personalizada do produto. */
+export type BadgeColor = 'vermelho' | 'preto' | 'verde' | 'azul' | 'dourado'
+
 export interface Product {
   id: string
   slug: string
@@ -52,8 +55,17 @@ export interface Product {
   gender: Gender
   /** Numerações disponíveis, em ordem crescente. */
   sizes: number[]
-  /** Preço em reais (número, não string). */
+  /** Preço normal, em reais. */
   price: number
+  /**
+   * Preço promocional. Quando preenchido e menor que o normal, o site mostra
+   * o preço antigo riscado ao lado e o novo em destaque.
+   */
+  promoPrice?: number
+  /** Texto livre da etiqueta: "Lançamento", "Novo", "Últimas peças"… */
+  badgeText?: string
+  /** Cor da etiqueta. Sem valor, usa o vermelho da loja. */
+  badgeColor?: BadgeColor
   availability: Availability
   description: string
   /** Diferenciais em tópicos, exibidos na página do produto. */
