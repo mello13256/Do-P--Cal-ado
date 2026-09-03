@@ -15,6 +15,7 @@ import type { Availability, BadgeColor, Gender } from '../../types/catalog'
 import { CORES_DE_ETIQUETA, EtiquetaDoProduto } from '../../components/catalog/EtiquetaDoProduto'
 import { assetUrl } from '../../lib/assets'
 import { prepararFoto } from '../../lib/imagem'
+import { RecorteDeFoto } from '../../components/admin/RecorteDeFoto'
 
 const emptyProduct: ProductInput = {
   slug: '',
@@ -73,6 +74,8 @@ export default function AdminProductFormPage() {
   const [error, setError] = useState<string | null>(null)
   const [slugTouched, setSlugTouched] = useState(!isNew)
   const [enviandoFoto, setEnviandoFoto] = useState(false)
+  // Foto escolhida esperando o enquadramento antes de subir.
+  const [fotoParaEnquadrar, setFotoParaEnquadrar] = useState<File | null>(null)
   const arquivoInput = useRef<HTMLInputElement>(null)
   const cameraInput = useRef<HTMLInputElement>(null)
 
@@ -486,7 +489,9 @@ export default function AdminProductFormPage() {
           <section className="rounded-2xl border border-ink-200 bg-white p-6">
             <h2 className="text-base font-bold">Fotos</h2>
             <p className="mt-1 text-sm text-ink-500">
-              A primeira foto é a principal. Sempre descreva a imagem no campo de texto alternativo.
+              A primeira foto é a principal. Ao enviar, você escolhe o enquadramento — o site
+              mostra as fotos num quadro 4 x 5. Sempre descreva a imagem no campo de texto
+              alternativo.
             </p>
 
             <ul className="mt-4 space-y-3">
@@ -580,7 +585,7 @@ export default function AdminProductFormPage() {
                     className="sr-only"
                     onChange={(event) => {
                       const file = event.target.files?.[0]
-                      if (file) void handleUpload(file)
+                      if (file) setFotoParaEnquadrar(file)
                       event.target.value = ''
                     }}
                   />
@@ -591,7 +596,7 @@ export default function AdminProductFormPage() {
                     className="sr-only"
                     onChange={(event) => {
                       const file = event.target.files?.[0]
-                      if (file) void handleUpload(file)
+                      if (file) setFotoParaEnquadrar(file)
                       event.target.value = ''
                     }}
                   />
@@ -601,6 +606,17 @@ export default function AdminProductFormPage() {
           </section>
         </div>
       </div>
+
+      {fotoParaEnquadrar ? (
+        <RecorteDeFoto
+          arquivo={fotoParaEnquadrar}
+          onCancelar={() => setFotoParaEnquadrar(null)}
+          onConfirmar={(pronta) => {
+            setFotoParaEnquadrar(null)
+            void handleUpload(pronta)
+          }}
+        />
+      ) : null}
 
       {/* Salvar e cancelar ficam ao alcance do polegar, acompanhando a rolagem. */}
       <div className="sticky bottom-0 z-20 -mx-4 mt-8 border-t border-ink-200 bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">

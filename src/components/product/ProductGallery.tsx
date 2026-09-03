@@ -19,7 +19,7 @@ export function ProductGallery({ images, productName, categoryName }: ProductGal
   return (
     <div>
       <div className="overflow-hidden rounded-2xl border border-ink-100 bg-ink-50">
-        <div className="aspect-4/5 sm:aspect-square lg:aspect-4/5">
+        <div className="aspect-4/5">
           {active?.src ? (
             <img
               src={assetUrl(active.src)}
@@ -43,7 +43,7 @@ export function ProductGallery({ images, productName, categoryName }: ProductGal
                 aria-label={`Ver foto ${index + 1} de ${productName}`}
                 aria-current={index === activeIndex}
                 className={cn(
-                  'aspect-square w-full overflow-hidden rounded-xl border transition-colors',
+                  'aspect-4/5 w-full overflow-hidden rounded-xl border transition-colors',
                   index === activeIndex
                     ? 'border-brand-500 ring-2 ring-brand-100'
                     : 'border-ink-100 hover:border-ink-300',

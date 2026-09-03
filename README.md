@@ -264,7 +264,9 @@ Fica em **`/admin`** (e `/admin/entrar` para o login). Permite:
 - cadastrar, editar e excluir produtos;
 - alterar preço e disponibilidade direto na listagem;
 - controlar o **estoque por numeração**;
-- enviar fotos (vão para o armazenamento do Supabase) ou informar o caminho;
+- enviar fotos (vão para o armazenamento do Supabase) ou informar o caminho —
+  ao enviar, uma tela mostra o quadro 4:5 usado no site para escolher o
+  enquadramento antes de subir, ou encaixar a foto inteira sobre fundo branco;
 - marcar produto como destaque ou escondê-lo do site sem excluir;
 - cadastrar e editar marcas e categorias.
 
