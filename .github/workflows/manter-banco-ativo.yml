@@ -1,0 +1,47 @@
+# Mantém o banco do Supabase acordado.
+#
+# No plano gratuito, um projeto sem nenhum acesso por 7 dias é pausado — e,
+# pausado, o catálogo some do site (o cliente vê "Catálogo indisponível" e só
+# o botão do WhatsApp). Este fluxo faz uma consulta mínima duas vezes por
+# semana, o que conta como uso e evita a pausa.
+#
+# A chave usada é a `anon`, pública por natureza (ela já vai no site, dentro do
+# JavaScript que todo visitante baixa). A chave `service_role` nunca entra aqui.
+#
+# Atenção: o GitHub desliga agendamentos em repositórios parados há 60 dias.
+# Se isso acontecer, ele avisa por e-mail e basta reativar em Actions.
+name: Manter banco ativo
+
+on:
+  schedule:
+    # Segundas e quintas, 13h23 UTC (10h23 em Brasília).
+    - cron: '23 13 * * 1,4'
+  workflow_dispatch:
+
+jobs:
+  consultar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ler endereço e chave pública do projeto
+        id: projeto
+        run: |
+          arquivo=src/services/supabase/client.ts
+          url=$(grep -oP "url: '\Khttps://[^']+" "$arquivo" | head -1)
+          chave=$(grep -oP "^\s*'\KeyJ[A-Za-z0-9._-]+" "$arquivo" | head -1)
+          if [ -z "$url" ] || [ -z "$chave" ]; then
+            echo "Não encontrei o endereço ou a chave pública em $arquivo." >&2
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$chave"
+          echo "chave=$chave" >> "$GITHUB_OUTPUT"
+
+      - name: Consultar o catálogo
+        run: |
+          codigo=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
+            "${{ steps.projeto.outputs.url }}/rest/v1/products?select=id&limit=1" \
+            -H "apikey: ${{ steps.projeto.outputs.chave }}")
+          echo "Resposta do banco: HTTP $codigo"
+          [ "$codigo" = "200" ]
